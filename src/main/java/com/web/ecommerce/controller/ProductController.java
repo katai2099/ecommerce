@@ -3,6 +3,7 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.product.CreateProductRequest;
 import com.web.ecommerce.dto.product.ProductDTO;
 import com.web.ecommerce.dto.product.ProductDetailDTO;
+import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.model.product.Product;
 import com.web.ecommerce.model.product.Size;
@@ -80,7 +81,7 @@ public class ProductController {
     public ResponseEntity<String> updateProduct(@PathVariable Long productId,
                                                 @RequestBody CreateProductRequest product) {
         if (!productId.equals(product.getId())) {
-            return ResponseEntity.badRequest().body("Product ID mismatch.");
+            throw  new InvalidContentException("Product ID mismatch");
         }
         productService.updateProduct(product);
         return ResponseEntity.ok("Product updated successfully.");

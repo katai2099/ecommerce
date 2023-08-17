@@ -3,6 +3,7 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.cart.NewCartDTO;
 import com.web.ecommerce.dto.cart.UpdateCartDTO;
 import com.web.ecommerce.dto.cart.CartItemDTO;
+import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ public class CartController {
     @PutMapping("/{id}")
     public ResponseEntity<String> updateCart(@RequestBody UpdateCartDTO cartItem, @PathVariable Long id){
         if(!Objects.equals(cartItem.getCartItemId(), id)){
-            throw  new RuntimeException("ID mismatch");
+            throw new InvalidContentException("Cart ID mismatch");
         }
         cartService.updateCart(cartItem);
         return new ResponseEntity<>("Successfully updated",HttpStatus.OK);

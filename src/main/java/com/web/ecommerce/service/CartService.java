@@ -3,6 +3,8 @@ package com.web.ecommerce.service;
 import com.web.ecommerce.dto.cart.CartItemDTO;
 import com.web.ecommerce.dto.cart.NewCartDTO;
 import com.web.ecommerce.dto.cart.UpdateCartDTO;
+import com.web.ecommerce.exception.InvalidContentException;
+import com.web.ecommerce.exception.ResourceNotFoundException;
 import com.web.ecommerce.mapper.CartItemMapper;
 import com.web.ecommerce.model.product.Cart;
 import com.web.ecommerce.model.product.CartItem;
@@ -47,12 +49,9 @@ public class CartService {
     @Transactional
     public void addToCart(NewCartDTO newCartItem) {
         Optional<Cart> optionalCart = cartRepository.findCartByUserId(1L);
-        Optional<ProductSize> optionalProductSize = productSizeRepository.
-                findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize());
-        if (optionalProductSize.isEmpty()) {
-            throw new RuntimeException("No size associated with the product");
-        }
-        ProductSize productSize = optionalProductSize.get();
+        ProductSize productSize = productSizeRepository.
+                findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
+                .orElseThrow(()->new InvalidContentException("Product with provided size does not exist"));
         Cart currentCart;
         if (optionalCart.isPresent()) {
             currentCart = optionalCart.get();
@@ -70,7 +69,7 @@ public class CartService {
         if (existingCartItem.isPresent()) {
             CartItem item = existingCartItem.get();
             if(item.getQuantity()>=productSize.getStockCount()){
-                throw new RuntimeException("Product out of stock");
+                throw new InvalidContentException("Product out of stock");
             }
             item.setQuantity(item.getQuantity() + 1);
         } else {
@@ -85,12 +84,10 @@ public class CartService {
 
     @Transactional
     public void updateCart(UpdateCartDTO item) {
-        Optional<CartItem> dbCartItem = cartItemRepository.findById(item.getCartItemId());
-        if (dbCartItem.isEmpty()) {
-            throw new RuntimeException("No cart item");
-        }
+        CartItem dbCartItem = cartItemRepository.findById(item.getCartItemId())
+                .orElseThrow(()->new ResourceNotFoundException("Item associate with cart does not exist"));
         if (item.getQuantity() == 0) {
-            dbCartItem.get().removeFromCart();
+            dbCartItem.removeFromCart();
             cartItemRepository.deleteById(item.getCartItemId());
         } else {
             Optional<ProductSize> optionalProductSize = productSizeRepository.
@@ -98,12 +95,11 @@ public class CartService {
             if(optionalProductSize.isPresent()){
                 ProductSize productSize = optionalProductSize.get();
                 if(item.getQuantity() >productSize.getStockCount()){
-                    throw new RuntimeException("Product out of stock");
+                    throw new InvalidContentException("Product out of stock");
                 }
             }
-            CartItem cartItem = dbCartItem.get();
-            cartItem.setQuantity(item.getQuantity());
-            cartItemRepository.save(cartItem);
+            dbCartItem.setQuantity(item.getQuantity());
+            cartItemRepository.save(dbCartItem);
         }
     }
 }
