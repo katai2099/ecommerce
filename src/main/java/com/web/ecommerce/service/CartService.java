@@ -93,6 +93,14 @@ public class CartService {
             dbCartItem.get().removeFromCart();
             cartItemRepository.deleteById(item.getCartItemId());
         } else {
+            Optional<ProductSize> optionalProductSize = productSizeRepository.
+                    findProductSizeByCartItemsId(item.getCartItemId());
+            if(optionalProductSize.isPresent()){
+                ProductSize productSize = optionalProductSize.get();
+                if(item.getQuantity() >productSize.getStockCount()){
+                    throw new RuntimeException("Product out of stock");
+                }
+            }
             CartItem cartItem = dbCartItem.get();
             cartItem.setQuantity(item.getQuantity());
             cartItemRepository.save(cartItem);

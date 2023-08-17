@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ProductSizeRepository extends JpaRepository<ProductSize,Long> {
     Optional<ProductSize> findProductSizeByProductIdAndSizeName(Long productId, String sizeName);
+    Optional<ProductSize> findProductSizeByCartItemsId(Long cartItemId);
 }
