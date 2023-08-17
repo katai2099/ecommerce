@@ -1,6 +1,6 @@
 package com.web.ecommerce.repository;
 
-import com.web.ecommerce.model.Size;
+import com.web.ecommerce.model.product.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

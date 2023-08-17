@@ -1,7 +1,6 @@
-package com.web.ecommerce.model;
+package com.web.ecommerce.model.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +25,6 @@ public class Address {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id",referencedColumnName = "id")
-    @JsonBackReference
+    @JsonBackReference(value = "user-address")
     private User user;
 }

@@ -1,7 +1,7 @@
 package com.web.ecommerce.controller;
 
 import com.web.ecommerce.dto.user.AuthDTO;
-import com.web.ecommerce.model.User;
+import com.web.ecommerce.model.user.User;
 import com.web.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

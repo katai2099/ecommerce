@@ -2,8 +2,8 @@ package com.web.ecommerce.service;
 
 import com.web.ecommerce.dto.user.AuthDTO;
 import com.web.ecommerce.dto.user.CreateAddressRequest;
-import com.web.ecommerce.model.Address;
-import com.web.ecommerce.model.User;
+import com.web.ecommerce.model.user.Address;
+import com.web.ecommerce.model.user.User;
 import com.web.ecommerce.repository.AddressRepository;
 import com.web.ecommerce.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

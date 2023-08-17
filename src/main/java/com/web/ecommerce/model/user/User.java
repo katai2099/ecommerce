@@ -1,11 +1,14 @@
-package com.web.ecommerce.model;
+package com.web.ecommerce.model.user;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.web.ecommerce.model.order.Order;
+import com.web.ecommerce.model.product.Cart;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Entity(name = "users")
@@ -22,7 +25,15 @@ public class User {
     private String password;
 
     @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-address")
     private Address address;
+
+    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "user-orders")
+    private List<Order> orders;
+
+    @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "user-carts")
+    private Cart cart;
 
 }

@@ -1,6 +1,5 @@
-package com.web.ecommerce.model;
+package com.web.ecommerce.model.order;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,17 +7,17 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Entity(name = "sizes")
+@Entity(name = "order_status")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Size {
+public class OrderStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "size")
-    @JsonIgnore
-    private List<ProductSize> productSizes;
+    @OneToMany(mappedBy = "orderStatus")
+    private List<Order> orders;
+
 }

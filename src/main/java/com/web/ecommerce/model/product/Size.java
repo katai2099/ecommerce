@@ -1,18 +1,24 @@
-package com.web.ecommerce.model;
+package com.web.ecommerce.model.product;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
+import java.util.List;
+
+@Entity(name = "sizes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+public class Size {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
     private String name;
+
+    @OneToMany(mappedBy = "size")
+    @JsonIgnore
+    private List<ProductSize> productSizes;
 }
