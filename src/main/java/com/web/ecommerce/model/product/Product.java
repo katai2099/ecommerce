@@ -2,7 +2,6 @@ package com.web.ecommerce.model.product;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.web.ecommerce.enumeration.Gender;
-import com.web.ecommerce.model.order.OrderDetail;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,9 +41,6 @@ public class Product {
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product")
-    @JsonManagedReference("product-orders")
-    @Builder.Default
-    private List<OrderDetail> orderDetails = new ArrayList<>();
+
 
 }

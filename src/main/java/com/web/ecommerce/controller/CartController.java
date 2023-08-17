@@ -44,4 +44,10 @@ public class CartController {
         return new ResponseEntity<>(items,HttpStatus.OK);
     }
 
+    @PostMapping("/checkout")
+    public ResponseEntity<String> checkout(){
+        cartService.checkout();
+        return ResponseEntity.ok("Done checkout");
+    }
+
 }

@@ -2,12 +2,14 @@ package com.web.ecommerce.model.product;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.web.ecommerce.model.order.OrderDetail;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,6 +36,11 @@ public class ProductSize {
     @OneToMany(mappedBy = "productSize",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JsonManagedReference(value = "product-size-carts")
     private List<CartItem> cartItems;
+
+    @OneToMany(mappedBy = "productSize",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @Builder.Default
+    private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

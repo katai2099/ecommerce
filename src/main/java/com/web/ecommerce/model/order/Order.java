@@ -8,9 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "orders")
+@Entity()
+@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +21,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String orderDate;
+    private LocalDateTime orderDate;
     private double TotalPrice;
 
     @ManyToOne
@@ -30,8 +33,12 @@ public class Order {
     @JoinColumn(name = "order_status_id",referencedColumnName = "id")
     private OrderStatus orderStatus;
 
-    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonManagedReference("order-details")
-    List<OrderDetail> orderDetails;
+    List<OrderDetail> orderDetails = new ArrayList<>();
+
+    public void addOrderDetail(OrderDetail orderDetail){
+        this.orderDetails.add(orderDetail);
+    }
 
 }

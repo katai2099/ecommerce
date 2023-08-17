@@ -1,7 +1,7 @@
 package com.web.ecommerce.model.order;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.web.ecommerce.model.product.Product;
+import com.web.ecommerce.model.product.ProductSize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,8 +24,8 @@ public class OrderDetail {
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "product_id",referencedColumnName = "id")
-    @JsonBackReference("product-orders")
-    private Product product;
+    @JoinColumn(name = "product_size_id",referencedColumnName = "id")
+    @JsonBackReference("product-size-orders")
+    private ProductSize productSize;
 
 }

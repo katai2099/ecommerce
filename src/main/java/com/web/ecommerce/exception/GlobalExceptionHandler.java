@@ -24,6 +24,12 @@ public class GlobalExceptionHandler {
         return getExceptionResponseResponseEntity(request, exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = {InternalServerException.class})
+    public ResponseEntity<ExceptionResponse> handleInternalServerException(InternalServerException exception,
+                                                                           HttpServletRequest request){
+        return getExceptionResponseResponseEntity(request,exception.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     private ResponseEntity<ExceptionResponse> getExceptionResponseResponseEntity(HttpServletRequest request,
                                                                                  String message,
                                                                                  HttpStatus status) {
