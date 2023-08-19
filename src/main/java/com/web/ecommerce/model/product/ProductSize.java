@@ -38,7 +38,7 @@ public class ProductSize {
     private List<CartItem> cartItems;
 
     @OneToMany(mappedBy = "productSize",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference(value = "product-size-orders")
     @Builder.Default
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
