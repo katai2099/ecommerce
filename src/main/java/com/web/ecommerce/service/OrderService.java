@@ -11,7 +11,9 @@ import com.web.ecommerce.model.order.OrderDetail;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.repository.OrderRepository;
 import com.web.ecommerce.repository.OrderStatusRepository;
+import com.web.ecommerce.util.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 
 @Service
 public class OrderService {
@@ -33,9 +37,22 @@ public class OrderService {
     }
 
     @Transactional
-    public List<OrderDTO> getOrders(int page) {
+    public PaginationResponse<OrderDTO> getOrders(int page) {
         Pageable pageable = PageRequest.of(page - 1, 20, Sort.by("orderDate").descending());
-        List<Order> orders = orderRepository.findAllByUserId(1L,pageable);
+        Page<Order> orderLists = orderRepository.findAll(pageable);
+        List<OrderDTO> orders = OrderDTO.toOrderDTOS(orderLists.stream().toList());
+        return PaginationResponse.<OrderDTO>builder()
+                .currentPage(page)
+                .totalPages(orderLists.getTotalPages())
+                .totalItems(orderLists.getNumberOfElements())
+                .data(orders)
+                .build();
+    }
+
+    public List<OrderDTO> getUserOrders(int page){
+        Long userId = getUserIdFromSecurityContext();
+        Pageable pageable = PageRequest.of(page - 1, 20, Sort.by("orderDate").descending());
+        List<Order> orders = orderRepository.findAllByUserId(userId,pageable);
         return OrderDTO.toOrderDTOS(orders);
     }
 

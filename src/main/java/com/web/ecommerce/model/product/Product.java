@@ -5,6 +5,7 @@ import com.web.ecommerce.enumeration.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,8 @@ public class Product {
     private String name;
     private String description;
     private double price;
+    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

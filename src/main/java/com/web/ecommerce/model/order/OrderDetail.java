@@ -18,14 +18,14 @@ public class OrderDetail {
     private int quantity;
     private double priceAtPurchase;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "order_id",referencedColumnName = "id")
-    @JsonBackReference("order-details")
+    @JsonBackReference(value = "order-details")
     private Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_size_id",referencedColumnName = "id")
-    @JsonBackReference("product-size-orders")
+    @JsonBackReference(value = "product-size-orders")
     private ProductSize productSize;
 
 }

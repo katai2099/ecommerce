@@ -26,7 +26,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "user_id",referencedColumnName = "id")
-    @JsonBackReference("user-orders")
+    @JsonBackReference(value = "user-orders")
     private User user;
 
     @ManyToOne
@@ -34,7 +34,7 @@ public class Order {
     private OrderStatus orderStatus;
 
     @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JsonManagedReference("order-details")
+    @JsonManagedReference(value = "order-details")
     List<OrderDetail> orderDetails = new ArrayList<>();
 
     public void addOrderDetail(OrderDetail orderDetail){

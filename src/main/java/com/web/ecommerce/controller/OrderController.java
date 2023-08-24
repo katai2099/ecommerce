@@ -3,6 +3,7 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.order.OrderDTO;
 import com.web.ecommerce.dto.order.OrderDetailDTO;
 import com.web.ecommerce.service.OrderService;
+import com.web.ecommerce.util.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +20,14 @@ public class OrderController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<OrderDTO>> getOrders(@RequestParam int page){
+    public ResponseEntity<PaginationResponse<OrderDTO>> getOrders(@RequestParam int page,
+                                                        @RequestParam(required = false) String status){
         return ResponseEntity.ok(orderService.getOrders(page));
+    }
+
+    @GetMapping("/user/")
+    public ResponseEntity<List<OrderDTO>> getUserOrders(@RequestParam int page){
+        return ResponseEntity.ok(orderService.getUserOrders(page));
     }
 
     @GetMapping("/{orderId}")

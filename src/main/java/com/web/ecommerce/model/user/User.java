@@ -6,6 +6,7 @@ import com.web.ecommerce.model.product.Cart;
 import com.web.ecommerce.model.product.Review;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Entity(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +27,8 @@ public class User {
     @Column(unique = true)
     private String email;
     private String password;
+    @Enumerated(value = EnumType.STRING)
+    private Role role;
 
     @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-address")
