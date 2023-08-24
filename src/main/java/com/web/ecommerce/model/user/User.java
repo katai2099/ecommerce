@@ -3,6 +3,7 @@ package com.web.ecommerce.model.user;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.web.ecommerce.model.order.Order;
 import com.web.ecommerce.model.product.Cart;
+import com.web.ecommerce.model.product.Review;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +37,12 @@ public class User {
     @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-carts")
     private Cart cart;
+
+    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "user-reviews")
+    private List<Review> reviews = new ArrayList<>();
+
+
 
     public void addOrder(Order order){
         orders.add(order);

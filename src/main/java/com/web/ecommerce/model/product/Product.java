@@ -41,6 +41,10 @@ public class Product {
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "product-reviews")
+    private List<Review> reviews = new ArrayList<>();
+
 
 
 }

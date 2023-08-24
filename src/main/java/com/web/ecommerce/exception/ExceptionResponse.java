@@ -11,5 +11,5 @@ public class ExceptionResponse {
     private LocalDateTime timestamp;
     private int status;
     private String message;
-    private String requestURI;
+    private String path;
 }

@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         error.setTimestamp(LocalDateTime.now());
         error.setMessage(message);
         error.setStatus(status.value());
-        error.setRequestURI(request.getRequestURI());
+        error.setPath(request.getRequestURI());
         return new ResponseEntity<>(error, status);
     }
 

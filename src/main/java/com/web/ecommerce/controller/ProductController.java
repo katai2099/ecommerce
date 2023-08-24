@@ -1,13 +1,12 @@
 package com.web.ecommerce.controller;
 
-import com.web.ecommerce.dto.product.CreateProductRequest;
-import com.web.ecommerce.dto.product.ProductDTO;
-import com.web.ecommerce.dto.product.ProductDetailDTO;
+import com.web.ecommerce.dto.product.*;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.model.product.Product;
 import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
+import com.web.ecommerce.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +19,12 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ReviewService reviewService;
 
     @Autowired
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ReviewService reviewService) {
         this.productService = productService;
+        this.reviewService = reviewService;
     }
 
     @PostMapping("/category/")
@@ -91,6 +92,28 @@ public class ProductController {
     public ResponseEntity<String> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
         return new ResponseEntity<>("Product with ID " + productId + " removed", HttpStatus.OK);
+    }
+
+    @GetMapping("/{productId}/reviews")
+    public ResponseEntity<ReviewDTO> getReviews(@PathVariable Long productId,
+                                                @RequestParam int page){
+        ReviewDTO dto = reviewService.getReviews(productId,page);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{productId}/reviews")
+    public ResponseEntity<String> submitReview(@PathVariable Long productId,
+                                               @RequestBody NewReview newReview){
+        reviewService.saveReview(productId,newReview);
+        return ResponseEntity.ok("Successfully submitted");
+    }
+
+    @PutMapping("/{productId}/reviews/{reviewId}")
+    public ResponseEntity<String> updateReview(@PathVariable Long productId,
+                                               @PathVariable Long reviewId,
+                                               @RequestBody NewReview newReview){
+        reviewService.updateReview(productId,reviewId,newReview);
+        return ResponseEntity.ok("Successfully updated");
     }
 
 
