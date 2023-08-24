@@ -41,17 +41,20 @@ public class ProductService {
     }
 
 
+    @Transactional
     public List<ProductDTO> getProducts(String gender, int page, String category) {
         Pageable pageable = PageRequest.of(page - 1, 20);
         List<Product> products = productRepository.findAllByGender(Gender.valueOf(gender), pageable);
         return ProductDTO.toProductDTOS(products);
     }
 
+    @Transactional
     public ProductDetailDTO getProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         return ProductDetailDTO.productDetailDTO(product);
     }
 
+    @Transactional
     public List<ProductDTO> searchProducts(String gender, int page, String searchTerm) {
         Pageable pageable = PageRequest.of(page - 1, 20);
         List<Product> products = productRepository.findAllByNameContainingIgnoreCaseAndGender(searchTerm, Gender.valueOf(gender), pageable);
@@ -130,21 +133,26 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
 
+    @Transactional
     public void addNewCategory(Category category) {
         categoryRepository.save(category);
     }
 
+    @Transactional
     public List<Category> getCategories() {
         return categoryRepository.findAll();
     }
+    @Transactional
 
     public void addNewSize(Size size) {
         sizeRepository.save(size);
     }
+    @Transactional
 
     public List<Size> getSizes() {
         return sizeRepository.findAll();

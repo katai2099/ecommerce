@@ -1,16 +1,16 @@
 package com.web.ecommerce.model.user;
 
 public enum Role {
-    USER,
-    ADMIN;
+    ROLE_ADMIN,
+    ROLE_USER;
 
     @Override
     public String toString() {
         switch (this){
-            case USER -> {
+            case ROLE_USER -> {
                 return "USER";
             }
-            case ADMIN -> {
+            case ROLE_ADMIN -> {
                 return "ADMIN";
             }
             default -> {

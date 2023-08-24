@@ -3,6 +3,7 @@ package com.web.ecommerce.service;
 import com.web.ecommerce.dto.cart.CartItemDTO;
 import com.web.ecommerce.dto.cart.NewCartDTO;
 import com.web.ecommerce.dto.cart.UpdateCartDTO;
+import com.web.ecommerce.enumeration.OrderStatusEnum;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.exception.ResourceNotFoundException;
 import com.web.ecommerce.mapper.CartItemMapper;
@@ -17,13 +18,14 @@ import com.web.ecommerce.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.web.ecommerce.enumeration.OrderStatusEnum ;
 
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 
 @Service
 public class CartService {
@@ -50,7 +52,8 @@ public class CartService {
     }
 
     public List<CartItemDTO> getCartItems() {
-        Optional<Cart> dbCart = cartRepository.findCartByUserId(1L);
+        Long userId = getUserIdFromSecurityContext();
+        Optional<Cart> dbCart = cartRepository.findCartByUserId(userId);
         if (dbCart.isEmpty()) {
             return new LinkedList<>();
         } else {
@@ -61,7 +64,8 @@ public class CartService {
 
     @Transactional
     public void addToCart(NewCartDTO newCartItem) {
-        Optional<Cart> optionalCart = cartRepository.findCartByUserId(1L);
+        Long userId = getUserIdFromSecurityContext();
+        Optional<Cart> optionalCart = cartRepository.findCartByUserId(userId);
         ProductSize productSize = productSizeRepository.
                 findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
                 .orElseThrow(() -> new InvalidContentException("Product with provided size does not exist"));
@@ -71,7 +75,7 @@ public class CartService {
         } else {
             currentCart = new Cart();
             User user = new User();
-            user.setId(1L);
+            user.setId(userId);
             currentCart.setUser(user);
         }
         Optional<CartItem> existingCartItem = currentCart
@@ -118,8 +122,9 @@ public class CartService {
 
     @Transactional
     public void checkout() {
-        User user = userRepository.findById(1L).orElseThrow(()->new InvalidContentException("User not found"));
-        Cart cart = cartRepository.findCartByUserId(1L)
+        Long userId = getUserIdFromSecurityContext();
+        User user = userRepository.findById(userId).orElseThrow(()->new InvalidContentException("User not found"));
+        Cart cart = cartRepository.findCartByUserId(userId)
                 .orElseThrow(() -> new InvalidContentException("No items in the cart"));
         Set<CartItem> cartItems = cart.getCartItems();
         Order order = new Order();

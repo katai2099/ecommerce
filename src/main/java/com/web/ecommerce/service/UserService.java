@@ -49,7 +49,7 @@ public class UserService {
                 .lastname(user.getLastname())
                 .email(user.getEmail())
                 .password(bCryptPasswordEncoder.encode(user.getPassword()))
-                .role(Role.USER)
+                .role(Role.ROLE_USER)
                 .build();
         userRepository.save(newUser);
         String jwt = jwtService.generateToken(Map.of("username", user.getEmail()));
