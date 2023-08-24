@@ -17,10 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+
+import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 
 @Service
 public class ReviewService {
@@ -36,18 +36,18 @@ public class ReviewService {
 
     @Transactional
     public ReviewDTO getReviews(Long productId, int page) {
-        Map<String, Object> response = new HashMap<>();
         Pageable pageable;
         ReviewDTO dto = new ReviewDTO();
+        Long userId = getUserIdFromSecurityContext();
         if (page == 1) {
-            Optional<Review> ownerReview = reviewRepository.findByProductIdAndUserId(productId, 1L);
+            Optional<Review> ownerReview = reviewRepository.findByProductIdAndUserId(productId, userId);
             dto.setOwnerReview( ownerReview.orElse(null));
             pageable = PageRequest.of(0, 5, Sort.by("reviewDate").descending());
         } else {
            dto.setOwnerReview(null);
             pageable = PageRequest.of(page - 1, 5, Sort.by("reviewDate").descending());
         }
-        List<Review> reviewList = reviewRepository.findByProductIdAndUserIdNot(productId, 1L, pageable);
+        List<Review> reviewList = reviewRepository.findByProductIdAndUserIdNot(productId, userId, pageable);
         dto.setOthersReview(reviewList);
         return dto;
     }
@@ -66,11 +66,12 @@ public class ReviewService {
 
     @Transactional
     public void saveReview(Long productId, NewReview review) {
+        Long userId = getUserIdFromSecurityContext();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        User user = userRepository.findById(1L)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Optional<Review> optionalReview = reviewRepository.findByProductIdAndUserId(productId, 1L);
+        Optional<Review> optionalReview = reviewRepository.findByProductIdAndUserId(productId, userId);
         if (optionalReview.isPresent()) {
             throw new InvalidContentException("User already made review for this product");
         }
