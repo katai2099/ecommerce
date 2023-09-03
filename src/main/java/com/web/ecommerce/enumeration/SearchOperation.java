@@ -1,7 +1,7 @@
 package com.web.ecommerce.enumeration;
 
 public enum SearchOperation {
-    EQUAL,GREATER_THAN,GREATER_THAN_EQUAL,LESS_THAN,LESS_THAN_EQUAL;
+    EQUAL,GREATER_THAN,GREATER_THAN_EQUAL,LESS_THAN,LESS_THAN_EQUAL,JOIN;
 
     public static SearchOperation getSimpleOperation(final String input){
         return switch (input) {
@@ -10,6 +10,7 @@ public enum SearchOperation {
             case "ge" -> GREATER_THAN_EQUAL;
             case "lt" -> LESS_THAN;
             case "le" -> LESS_THAN_EQUAL;
+            case "join" -> JOIN;
             default -> null;
         };
     }
@@ -22,6 +23,7 @@ public enum SearchOperation {
             case GREATER_THAN_EQUAL -> "ge";
             case LESS_THAN -> "lt";
             case LESS_THAN_EQUAL -> "le";
+            case JOIN -> "join";
         };
     }
 }

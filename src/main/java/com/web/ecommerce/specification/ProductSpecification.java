@@ -2,11 +2,15 @@ package com.web.ecommerce.specification;
 
 import com.web.ecommerce.enumeration.Gender;
 import com.web.ecommerce.enumeration.SearchOperation;
-import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.model.product.Product;
-import com.web.ecommerce.model.product.ProductSize;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProductSpecification implements Specification<Product> {
     private final SearchCriteria criteria;
@@ -17,20 +21,9 @@ public class ProductSpecification implements Specification<Product> {
 
     @Override
     public Predicate toPredicate(Root<Product> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        String strToSearch = criteria.getValue().toString().toLowerCase();
+        String strToSearch = criteria.getValue().toString().toUpperCase();
         switch (SearchOperation.getSimpleOperation(criteria.getOperation())) {
             case EQUAL -> {
-                if (criteria.getKey().equals("category")) {
-                    return builder.equal(
-                            builder.upper(categoryJoin(root).get(criteria.getColumnName())), criteria.getValue());
-                }
-                if (criteria.getKey().equals("stock")) {
-                    query.groupBy(root.get("id"));
-                    query.having(
-                            builder.equal(
-                                    builder.sum(productSizeJoin(root).get(criteria.getColumnName())), criteria.getValue()));
-                    return query.getRestriction();
-                }
                 if (root.get(criteria.getKey()).getJavaType() == String.class) {
                     return builder.like(
                             builder.upper(root.get(criteria.getKey())), "%" + strToSearch + "%");
@@ -43,53 +36,27 @@ public class ProductSpecification implements Specification<Product> {
                 }
             }
             case GREATER_THAN -> {
-                if (criteria.getKey().equals("stock")) {
-                    query.groupBy(root.get("id"));
-                    query.having(
-                            builder.greaterThan(
-                                    builder.sum(productSizeJoin(root).get(criteria.getColumnName())),
-                                    Double.valueOf(criteria.getValue().toString())));
-                    return query.getRestriction();
-//                    query.groupBy(root.get("id"));
-
-//                    Predicate havingClause = builder.greaterThan(
-//                            builder.sum(
-//                                    productSizeJoin(root).get(criteria.getColumnName())
-//                            ),Double.valueOf(criteria.getValue().toString())
-//                    );
-//                    return havingClause;
-//                    return null;
-                } else {
-                    return builder.greaterThan(
-                            root.get(criteria.getKey()), criteria.getValue().toString()
-                    );
-                }
+                return builder.greaterThan(
+                        root.get(criteria.getKey()), criteria.getValue().toString()
+                );
             }
             case GREATER_THAN_EQUAL -> {
                 return builder.greaterThanOrEqualTo(
                         root.get(criteria.getKey()), criteria.getValue().toString());
             }
             case LESS_THAN_EQUAL -> {
-                if (criteria.getKey().equals("stock")) {
+                return builder.lessThanOrEqualTo(
+                        root.get(criteria.getKey()), criteria.getValue().toString());
+            }
+            case JOIN -> {
+                joinTable(root, criteria.getJoinTable());
+                List<Predicate> predicates = constructPredicates(root, builder, criteria);
+                if (criteria.isAggregate()) {
                     query.groupBy(root.get("id"));
-                    productSizeJoin(root);
-                    query.having(
-                            builder.and(
-                                    builder.greaterThan(
-                                            builder.sum(root.get("productSizes").get(criteria.getColumnName())),
-                                            0
-                                    ),
-                                    builder.lessThanOrEqualTo(
-                                            builder.sum(root.get("productSizes").get(criteria.getColumnName())),
-                                            Double.valueOf(criteria.getValue().toString())
-                                    )
-                            )
-                    );
+                    query.having(builder.and(predicates.toArray(new Predicate[0])));
                     return query.getRestriction();
-                } else {
-                    return builder.lessThanOrEqualTo(
-                            root.get(criteria.getKey()), criteria.getValue().toString());
                 }
+                return predicates.get(0);
             }
             default -> {
                 return null;
@@ -97,12 +64,44 @@ public class ProductSpecification implements Specification<Product> {
         }
     }
 
-    private Join<Product, Category> categoryJoin(Root<Product> root) {
-        return root.join("category");
+    private List<Predicate> constructPredicates(Root<Product> root,
+                                                CriteriaBuilder builder,
+                                                SearchCriteria criteria) {
+        List<Predicate> predicateList = new ArrayList<>();
+        for (int i = 0; i < criteria.getJoinOperations().size(); i++) {
+            Predicate predicate = null;
+            SearchOperation operation = criteria.getJoinOperations().get(i);
+            if (criteria.isAggregate()) {
+                switch (operation) {
+                    case GREATER_THAN -> predicate = builder.greaterThan(
+                            builder.sum(root.get(criteria.getJoinTable()).get(criteria.getKey())),
+                            Double.valueOf(criteria.getJoinValues().get(i).toString())
+                    );
+                    case LESS_THAN_EQUAL -> predicate = builder.lessThanOrEqualTo(
+                            builder.sum(root.get(criteria.getJoinTable()).get(criteria.getKey())),
+                            Double.valueOf(criteria.getJoinValues().get(i).toString())
+                    );
+                    case EQUAL -> predicate = builder.equal(
+                            builder.sum(root.get(criteria.getJoinTable()).get(criteria.getKey())),
+                            Double.valueOf(criteria.getJoinValues().get(i).toString())
+                    );
+                }
+            } else {
+                if (operation == SearchOperation.EQUAL) {
+                    predicate = builder.equal(
+                            builder.upper(root.get(criteria.getJoinTable()).get(criteria.getKey())),
+                            criteria.getJoinValues().get(i).toString()
+                    );
+                }
+            }
+            predicateList.add(predicate);
+
+        }
+        return predicateList;
     }
 
-    private Join<Product, ProductSize> productSizeJoin(Root<Product> root) {
-        return root.join("productSizes");
+    private void joinTable(Root<Product> root, String joinTable) {
+        root.join(joinTable);
     }
 
 }
