@@ -16,6 +16,7 @@ import com.web.ecommerce.repository.ProductRepository;
 import com.web.ecommerce.repository.SizeRepository;
 import com.web.ecommerce.specification.ProductFilter;
 import com.web.ecommerce.specification.ProductSpecificationBuilder;
+import com.web.ecommerce.util.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +36,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.web.ecommerce.util.Constant.*;
 
 @Service
 public class ProductService {
@@ -57,23 +60,48 @@ public class ProductService {
     }
 
 
-    @Transactional
-    public List<ProdDTO> getProducts(ProductFilter filter) {
+    public PaginationResponse<ProdDTO> getProducts(ProductFilter filter) {
+        Pageable pageable = buildProductPageable(filter);
         ProductSpecificationBuilder builder = new ProductSpecificationBuilder();
         builder.withFilter(filter);
         Specification<Product> spec = builder.build();
-        Pageable pageable = PageRequest.of(filter.getPage() - 1, 20);
-        Page<Product> products = productRepository.findAll(spec,pageable);
-        return ProdDTO.toProdDTOS(products.toList());
+        Page<Product> products = productRepository.findAll(spec, pageable);
+        return PaginationResponse.<ProdDTO>builder()
+                .currentPage(filter.getPage())
+                .totalPages(products.getTotalPages())
+                .totalItems(products.getNumberOfElements())
+                .data(ProdDTO.toProdDTOS(products.toList()))
+                .build();
     }
 
-    @Transactional
+    private Pageable buildProductPageable(ProductFilter filter) {
+        if (filter.getSort() != null) {
+            String sort = filter.getSort().toUpperCase();
+            switch (sort) {
+                case HIGHEST_PRICE -> {
+                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").descending());
+                }
+                case LOWEST_PRICE -> {
+                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").ascending());
+                }
+                case NEWEST -> {
+                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("createdAt").descending());
+                }
+                case DEFAULT -> {
+                    filter.setStock(DEFAULT);
+                    return PageRequest.of(filter.getPage() - 1, 20);
+                }
+            }
+        }
+        return PageRequest.of(filter.getPage() - 1, 20);
+    }
+
     public ProductDetailDTO getProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         return ProductDetailDTO.productDetailDTO(product);
     }
 
-    @Transactional
+
     public List<ProductDTO> searchProducts(String gender, int page, String searchTerm) {
         Pageable pageable = PageRequest.of(page - 1, 20);
         List<Product> products = productRepository.findAllByNameContainingIgnoreCaseAndGender(searchTerm, Gender.valueOf(gender), pageable);
@@ -94,7 +122,7 @@ public class ProductService {
                 .category(category)
                 .build();
         for (int i = 0; i < createProductRequest.getProductSizes().size(); i++) {
-            if(createProductRequest.getProductSizes().get(i).getStockCount()>0){
+            if (createProductRequest.getProductSizes().get(i).getStockCount() > 0) {
                 Size size = sizeRepository.findByName(createProductRequest.getProductSizes().get(i).getSize().getName())
                         .orElseThrow(() -> new InvalidContentException("The provided size does not exist. Please provide a valid size."));
                 ProductSize productSize = ProductSize.builder()
@@ -106,11 +134,11 @@ public class ProductService {
             }
         }
         List<String> urls = uploadProductImages(files, newProduct);
-        createProductImages(urls,newProduct);
+        createProductImages(urls, newProduct);
         return productRepository.save(newProduct);
     }
 
-    private void createProductImages(List<String> urls,Product product){
+    private void createProductImages(List<String> urls, Product product) {
         for (String url : urls) {
             ProductImage image = ProductImage.builder()
                     .product(product)
@@ -122,9 +150,9 @@ public class ProductService {
 
     private List<String> uploadProductImages(List<MultipartFile> files, Product product) {
         List<String> urls = new ArrayList<>();
-        for (int i=0;i<files.size();i++) {
+        for (int i = 0; i < files.size(); i++) {
             try {
-                String key = "products/%s_%s_%s".formatted(LocalDateTime.now().toString(),i+1, product.getName());
+                String key = "products/%s_%s_%s".formatted(LocalDateTime.now().toString(), i + 1, product.getName());
                 s3Service.putObject("%s".formatted(key),
                         files.get(i).getBytes());
                 String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
@@ -192,7 +220,7 @@ public class ProductService {
             }
         });
         List<String> urls = uploadProductImages(files, product);
-        createProductImages(urls,product);
+        createProductImages(urls, product);
         productRepository.save(product);
     }
 
@@ -208,7 +236,7 @@ public class ProductService {
 
     @Transactional
     public List<Category> getCategories() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC,"id"));
+        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     @Transactional
@@ -220,7 +248,7 @@ public class ProductService {
     @Transactional
 
     public List<Size> getSizes() {
-        return sizeRepository.findAll(Sort.by(Sort.Direction.ASC,"id"));
+        return sizeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
 }

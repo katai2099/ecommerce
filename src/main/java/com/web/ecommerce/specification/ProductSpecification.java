@@ -54,6 +54,9 @@ public class ProductSpecification implements Specification<Product> {
                 if (criteria.isAggregate()) {
                     query.groupBy(root.get("id"));
                     query.having(builder.and(predicates.toArray(new Predicate[0])));
+                    query.orderBy(builder.desc(
+                            builder.sum(root.get(criteria.getJoinTable()).get(criteria.getKey()))
+                    ));
                     return query.getRestriction();
                 }
                 return predicates.get(0);

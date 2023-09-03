@@ -8,6 +8,7 @@ import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
 import com.web.ecommerce.specification.ProductFilter;
+import com.web.ecommerce.util.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -63,9 +64,8 @@ public class ProductController {
 
 
     @GetMapping()
-    public ResponseEntity<List<ProdDTO>> getProducts(@ModelAttribute ProductFilter filter) {
-        List<ProdDTO> products =  productService.getProducts(filter);
-        return ResponseEntity.ok(products);
+    public ResponseEntity<PaginationResponse<ProdDTO>> getProducts(@ModelAttribute ProductFilter filter) {
+        return ResponseEntity.ok(productService.getProducts(filter));
     }
 
     @GetMapping("/{productId}")

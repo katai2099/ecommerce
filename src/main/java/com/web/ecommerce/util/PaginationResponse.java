@@ -8,8 +8,8 @@ import java.util.List;
 @Data
 @Builder
 public class PaginationResponse<T> {
-    List<T> data;
     int currentPage;
     int totalItems;
     int totalPages;
+    List<T> data;
 }
