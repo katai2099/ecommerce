@@ -30,7 +30,7 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private Role role;
 
-    @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user")
     @JsonManagedReference(value = "user-address")
     private Address address;
 
@@ -38,7 +38,7 @@ public class User {
     @JsonManagedReference(value = "user-orders")
     private List<Order> orders = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user",fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user")
     @JsonManagedReference(value = "user-carts")
     private Cart cart;
 

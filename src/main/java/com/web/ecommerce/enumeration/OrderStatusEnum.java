@@ -7,27 +7,15 @@ public enum OrderStatusEnum {
         int nextOrderStatusIndex = (currentStatus.ordinal() + 1) % OrderStatusEnum.values().length;
         return OrderStatusEnum.values()[nextOrderStatusIndex];
     }
+
     @Override
     public String toString() {
-        switch (this) {
-            case PURCHASED -> {
-                return "PURCHASED";
-            }
-            case PROCESSING -> {
-                return "PROCESSING";
-            }
-            case SHIPPED -> {
-                return "SHIPPED";
-            }
-            case DELIVERED -> {
-                return "DELIVERED";
-            }
-            case CANCELLED -> {
-                return "CANCELLED";
-            }
-            default -> {
-                return "No match";
-            }
-        }
+        return switch (this) {
+            case PURCHASED -> "PURCHASED";
+            case PROCESSING -> "PROCESSING";
+            case SHIPPED -> "SHIPPED";
+            case DELIVERED -> "DELIVERED";
+            case CANCELLED -> "CANCELLED";
+        };
     }
 }

@@ -7,10 +7,13 @@ import com.web.ecommerce.model.product.Product;
 import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
+import com.web.ecommerce.specification.ProductFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +23,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final ReviewService reviewService;
+
 
     @Autowired
     public ProductController(ProductService productService, ReviewService reviewService) {
@@ -50,19 +54,17 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>>searchProducts(@RequestParam String section,
+    public ResponseEntity<List<ProductDTO>>searchProducts(@RequestParam String gender,
                                                           @RequestParam String searchTerm,
                                                           @RequestParam int page){
-        List<ProductDTO> products = productService.searchProducts(section.toUpperCase(),page,searchTerm);
+        List<ProductDTO> products = productService.searchProducts(gender.toUpperCase(),page,searchTerm);
         return ResponseEntity.ok(products);
     }
 
 
     @GetMapping()
-    public ResponseEntity<List<ProductDTO>> getProducts(@RequestParam String section,
-                                                        @RequestParam int page,
-                                                        @RequestParam(required = false) String category) {
-        List<ProductDTO> products =  productService.getProducts(section.toUpperCase(),page,category);
+    public ResponseEntity<List<ProdDTO>> getProducts(@ModelAttribute ProductFilter filter) {
+        List<ProdDTO> products =  productService.getProducts(filter);
         return ResponseEntity.ok(products);
     }
 
@@ -72,19 +74,21 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<Product> addNewProduct(@RequestBody CreateProductRequest createProductRequest) {
-        Product product = productService.addNewProduct(createProductRequest);
-        return new ResponseEntity<>(product, HttpStatus.OK);
+    @PostMapping(value = "/", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<Product> addNewProduct(@RequestPart(name = "productData") CreateProductRequest productData,
+                                                 @RequestPart List<MultipartFile> files) {
+        Product product = productService.addNewProduct(productData,files);
+        return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping(value = "/{productId}",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> updateProduct(@PathVariable Long productId,
-                                                @RequestBody CreateProductRequest product) {
-        if (!productId.equals(product.getId())) {
+                                                @RequestPart CreateProductRequest productData,
+                                                @RequestPart(required = false,name = "files[]") List<MultipartFile> files) {
+        if (!productId.equals(productData.getId())) {
             throw  new InvalidContentException("Product ID mismatch");
         }
-        productService.updateProduct(product);
+        productService.updateProduct(productData,files);
         return ResponseEntity.ok("Product updated successfully.");
     }
 

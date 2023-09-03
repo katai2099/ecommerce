@@ -25,8 +25,11 @@ public class Product {
     private String name;
     private String description;
     private double price;
+    private boolean publish;
+
+    @Builder.Default()
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -35,12 +38,13 @@ public class Product {
     @JoinColumn(name = "category_id",referencedColumnName = "id")
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @JsonManagedReference("product-sizes")
     @Builder.Default
     private Set<ProductSize> productSizes = new HashSet<>();
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JsonManagedReference("product-images")
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 

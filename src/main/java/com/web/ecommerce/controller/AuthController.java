@@ -1,8 +1,8 @@
 package com.web.ecommerce.controller;
 
-import com.web.ecommerce.dto.user.AuthenticationResponse;
 import com.web.ecommerce.dto.user.SignInRequest;
 import com.web.ecommerce.dto.user.SignUpRequest;
+import com.web.ecommerce.dto.user.UserDTO;
 import com.web.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +23,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody SignUpRequest user) {
-       AuthenticationResponse jwt = userService.register(user);
-        return ResponseEntity.ok(jwt);
+    public ResponseEntity<UserDTO> register(@RequestBody SignUpRequest user) {
+       UserDTO dto = userService.register(user);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody SignInRequest signInRequest) {
-        AuthenticationResponse jwt = userService.login(signInRequest);
-        return ResponseEntity.ok(jwt);
+    public ResponseEntity<UserDTO> login(@RequestBody SignInRequest signInRequest) {
+        UserDTO dto = userService.login(signInRequest);
+        return ResponseEntity.ok(dto);
     }
 }

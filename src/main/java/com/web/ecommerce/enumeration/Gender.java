@@ -4,16 +4,9 @@ public enum Gender {
     MEN, WOMEN;
     @Override
     public String toString() {
-        switch (this){
-            case MEN -> {
-                return "MEN";
-            }
-            case WOMEN -> {
-                return "WOMEN";
-            }
-            default -> {
-                return "No Match";
-            }
-        }
+        return switch (this) {
+            case MEN -> "MEN";
+            case WOMEN -> "WOMEN";
+        };
     }
 }

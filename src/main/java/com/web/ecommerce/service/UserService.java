@@ -1,10 +1,7 @@
 package com.web.ecommerce.service;
 
 import com.web.ecommerce.configuration.security.JwtService;
-import com.web.ecommerce.dto.user.AuthenticationResponse;
-import com.web.ecommerce.dto.user.SignInRequest;
-import com.web.ecommerce.dto.user.CreateAddressRequest;
-import com.web.ecommerce.dto.user.SignUpRequest;
+import com.web.ecommerce.dto.user.*;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.user.Address;
 import com.web.ecommerce.model.user.Role;
@@ -39,7 +36,7 @@ public class UserService {
     }
 
     @Transactional
-    public AuthenticationResponse register(SignUpRequest user) {
+    public UserDTO register(SignUpRequest user) {
         Optional<User> dbUser = userRepository.findByEmail(user.getEmail());
         if(dbUser.isPresent()){
             throw new InvalidContentException("User with email " + user.getEmail() + " already existed");
@@ -53,16 +50,30 @@ public class UserService {
                 .build();
         userRepository.save(newUser);
         String jwt = jwtService.generateToken(Map.of("username", user.getEmail()));
-        return new AuthenticationResponse(jwt);
+        UserDTO userDTO = UserDTO.builder()
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .email(user.getEmail())
+                .role(newUser.getRole().name())
+                .token(jwt)
+                .build();
+        return userDTO;
     }
 
     @Transactional
-    public AuthenticationResponse login(SignInRequest signInRequest) {
+    public UserDTO login(SignInRequest signInRequest) {
         User user = userRepository.findByEmail(signInRequest.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials."));
         if (bCryptPasswordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
             String jwt = jwtService.generateToken(Map.of("username", signInRequest.getEmail()));
-            return new AuthenticationResponse(jwt);
+            UserDTO userDTO = UserDTO.builder()
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .email(user.getEmail())
+                    .role(user.getRole().name())
+                    .token(jwt)
+                    .build();
+            return userDTO;
         } else {
             throw new BadCredentialsException("Bad credentials.");
         }
