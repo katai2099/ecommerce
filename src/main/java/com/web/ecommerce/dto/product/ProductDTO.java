@@ -1,10 +1,9 @@
 package com.web.ecommerce.dto.product;
 
 import com.web.ecommerce.model.product.Product;
-import com.web.ecommerce.model.product.ProductImage;
 import lombok.Data;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,21 +11,30 @@ import java.util.stream.Collectors;
 public class ProductDTO {
     private Long id;
     private String name;
+    private String description;
     private double price;
-    private List<String> sizeLabels = new ArrayList<>();
-    private List<String> picUrls = new ArrayList<>();
+    private boolean publish;
+    private LocalDateTime createdAt;
+    private CategoryDTO category;
+    private List<ProductSizeDTO> productSizes;
+    private List<ProductImageDTO> images;
 
-    public static ProductDTO toProductDTO(Product product){
+    public static ProductDTO toProductDTO(Product product) {
         ProductDTO dto = new ProductDTO();
         dto.setId(product.getId());
         dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
         dto.setPrice(product.getPrice());
-        dto.setSizeLabels(product.getProductSizes().stream().map(x->x.getSize().getName()).collect(Collectors.toList()));
-        dto.setPicUrls(product.getImages().stream().map(ProductImage::getImageUrl).collect(Collectors.toList()));
+        dto.setPublish(product.isPublish());
+        dto.setCreatedAt(product.getCreatedAt());
+        dto.setCategory(CategoryDTO.toCategoryDTO(product.getCategory()));
+        dto.setProductSizes(product.getProductSizes().stream().map(ProductSizeDTO::toProductSizeDTO).collect(Collectors.toList()));
+        dto.setImages(product.getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
         return dto;
     }
 
-    public static List<ProductDTO> toProductDTOS(List<Product> products){
+
+    public static List<ProductDTO> toProductDTOs(List<Product> products) {
         return products.stream()
                 .map(ProductDTO::toProductDTO)
                 .collect(Collectors.toList());

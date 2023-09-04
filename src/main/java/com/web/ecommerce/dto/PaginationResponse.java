@@ -1,4 +1,4 @@
-package com.web.ecommerce.util;
+package com.web.ecommerce.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 public class PaginationResponse<T> {
     int currentPage;
-    int totalItems;
-    int totalPages;
+    int totalItem;
+    int totalPage;
     List<T> data;
 }

@@ -11,7 +11,7 @@ import com.web.ecommerce.model.order.OrderDetail;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.repository.OrderRepository;
 import com.web.ecommerce.repository.OrderStatusRepository;
-import com.web.ecommerce.util.PaginationResponse;
+import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,8 +43,8 @@ public class OrderService {
         List<OrderDTO> orders = OrderDTO.toOrderDTOS(orderLists.stream().toList());
         return PaginationResponse.<OrderDTO>builder()
                 .currentPage(page)
-                .totalPages(orderLists.getTotalPages())
-                .totalItems(orderLists.getNumberOfElements())
+                .totalPage(orderLists.getTotalPages())
+                .totalItem(orderLists.getNumberOfElements())
                 .data(orders)
                 .build();
     }

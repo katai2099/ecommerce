@@ -8,7 +8,7 @@ import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
 import com.web.ecommerce.specification.ProductFilter;
-import com.web.ecommerce.util.PaginationResponse;
+import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -64,13 +64,13 @@ public class ProductController {
 
 
     @GetMapping()
-    public ResponseEntity<PaginationResponse<ProdDTO>> getProducts(@ModelAttribute ProductFilter filter) {
+    public ResponseEntity<PaginationResponse<ProductDTO>> getProducts(@ModelAttribute ProductFilter filter) {
         return ResponseEntity.ok(productService.getProducts(filter));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDetailDTO> getProduct(@PathVariable Long productId) {
-        ProductDetailDTO product = productService.getProduct(productId);
+    public ResponseEntity<ProductDTO> getProduct(@PathVariable Long productId) {
+        ProductDTO product = productService.getProduct(productId);
         return ResponseEntity.ok(product);
     }
 

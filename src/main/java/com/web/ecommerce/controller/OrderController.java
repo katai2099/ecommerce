@@ -3,7 +3,7 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.order.OrderDTO;
 import com.web.ecommerce.dto.order.OrderDetailDTO;
 import com.web.ecommerce.service.OrderService;
-import com.web.ecommerce.util.PaginationResponse;
+import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

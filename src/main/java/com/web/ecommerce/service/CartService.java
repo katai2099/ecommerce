@@ -6,7 +6,6 @@ import com.web.ecommerce.dto.cart.UpdateCartDTO;
 import com.web.ecommerce.enumeration.OrderStatusEnum;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.exception.ResourceNotFoundException;
-import com.web.ecommerce.mapper.CartItemMapper;
 import com.web.ecommerce.model.order.Order;
 import com.web.ecommerce.model.order.OrderDetail;
 import com.web.ecommerce.model.order.OrderStatus;
@@ -58,7 +57,7 @@ public class CartService {
             return new LinkedList<>();
         } else {
             Cart cart = dbCart.get();
-            return CartItemMapper.toCartItemDTOs(cart.getCartItems());
+            return CartItemDTO.toCartItemDTOs(cart.getCartItems());
         }
     }
 

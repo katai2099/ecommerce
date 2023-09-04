@@ -3,9 +3,9 @@ package com.web.ecommerce.service;
 import com.web.ecommerce.configuration.aws.s3.S3Buckets;
 import com.web.ecommerce.configuration.aws.s3.S3Service;
 import com.web.ecommerce.dto.product.CreateProductRequest;
-import com.web.ecommerce.dto.product.ProdDTO;
 import com.web.ecommerce.dto.product.ProductDTO;
-import com.web.ecommerce.dto.product.ProductDetailDTO;
+import com.web.ecommerce.dto.product.ProductImageDTO;
+import com.web.ecommerce.dto.product.ProductSizeDTO;
 import com.web.ecommerce.enumeration.Gender;
 import com.web.ecommerce.exception.FailUploadImageException;
 import com.web.ecommerce.exception.InvalidContentException;
@@ -16,7 +16,7 @@ import com.web.ecommerce.repository.ProductRepository;
 import com.web.ecommerce.repository.SizeRepository;
 import com.web.ecommerce.specification.ProductFilter;
 import com.web.ecommerce.specification.ProductSpecificationBuilder;
-import com.web.ecommerce.util.PaginationResponse;
+import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,17 +60,17 @@ public class ProductService {
     }
 
 
-    public PaginationResponse<ProdDTO> getProducts(ProductFilter filter) {
+    public PaginationResponse<ProductDTO> getProducts(ProductFilter filter) {
         Pageable pageable = buildProductPageable(filter);
         ProductSpecificationBuilder builder = new ProductSpecificationBuilder();
         builder.withFilter(filter);
         Specification<Product> spec = builder.build();
         Page<Product> products = productRepository.findAll(spec, pageable);
-        return PaginationResponse.<ProdDTO>builder()
+        return PaginationResponse.<ProductDTO>builder()
                 .currentPage(filter.getPage())
-                .totalPages(products.getTotalPages())
-                .totalItems(products.getNumberOfElements())
-                .data(ProdDTO.toProdDTOS(products.toList()))
+                .totalPage(products.getTotalPages())
+                .totalItem(products.getNumberOfElements())
+                .data(ProductDTO.toProductDTOs(products.toList()))
                 .build();
     }
 
@@ -96,16 +96,16 @@ public class ProductService {
         return PageRequest.of(filter.getPage() - 1, 20);
     }
 
-    public ProductDetailDTO getProduct(Long id) {
+    public ProductDTO getProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-        return ProductDetailDTO.productDetailDTO(product);
+        return ProductDTO.toProductDTO(product);
     }
 
 
     public List<ProductDTO> searchProducts(String gender, int page, String searchTerm) {
         Pageable pageable = PageRequest.of(page - 1, 20);
         List<Product> products = productRepository.findAllByNameContainingIgnoreCaseAndGender(searchTerm, Gender.valueOf(gender), pageable);
-        return ProductDTO.toProductDTOS(products);
+        return ProductDTO.toProductDTOs(products);
     }
 
 
@@ -185,11 +185,11 @@ public class ProductService {
         }
         product.setPrice(dto.getPrice());
         Set<Long> updatedSizeIds = dto.getProductSizes().stream()
-                .map(CreateProductRequest.ProductSize::getId)
+                .map(ProductSizeDTO::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         product.getProductSizes().removeIf(size -> !updatedSizeIds.contains(size.getId()));
-        for (CreateProductRequest.ProductSize productSizeDto : dto.getProductSizes()) {
+        for (ProductSizeDTO productSizeDto : dto.getProductSizes()) {
             if (productSizeDto.getId() == null) {
                 Size size = sizeRepository.findByName(productSizeDto.getSize().getName())
                         .orElseThrow(() -> new InvalidContentException("The provided size does not exist. Please provide a valid size."));
@@ -209,7 +209,7 @@ public class ProductService {
         }
 
         Set<String> updatedImages = dto.getImages().stream()
-                .map(CreateProductRequest.Image::getImageUrl)
+                .map(ProductImageDTO::getImageUrl)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         product.getImages().forEach((img) -> {
