@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 public class PaginationResponse<T> {
     int currentPage;
-    int totalItem;
+    long totalItem;
     int totalPage;
     List<T> data;
 }

@@ -1,14 +1,16 @@
 package com.web.ecommerce.controller;
 
-import com.web.ecommerce.dto.product.*;
+import com.web.ecommerce.dto.PaginationResponse;
+import com.web.ecommerce.dto.product.CreateProductRequest;
+import com.web.ecommerce.dto.product.NewReview;
+import com.web.ecommerce.dto.product.ProductDTO;
+import com.web.ecommerce.dto.product.ReviewDTO;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.product.Category;
-import com.web.ecommerce.model.product.Product;
 import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
 import com.web.ecommerce.specification.ProductFilter;
-import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -75,9 +77,9 @@ public class ProductController {
     }
 
     @PostMapping(value = "/", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Product> addNewProduct(@RequestPart(name = "productData") CreateProductRequest productData,
+    public ResponseEntity<ProductDTO> addNewProduct(@RequestPart(name = "productData") CreateProductRequest productData,
                                                  @RequestPart List<MultipartFile> files) {
-        Product product = productService.addNewProduct(productData,files);
+        ProductDTO product = productService.addNewProduct(productData,files);
         return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 

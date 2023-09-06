@@ -19,14 +19,13 @@ public class ProductSpecificationBuilder {
 
     public final ProductSpecificationBuilder withFilter(ProductFilter filter) {
         //TODO: handle case where gender is mistyped
-        if (filter.getQuery() != null) {
-            params.add(new SearchCriteria("name", "eq", filter.getQuery().toUpperCase(), false));
+        if (filter.getQ() != null) {
+            params.add(new SearchCriteria("name", "eq", filter.getQ().toUpperCase(), false));
         }
         if (filter.getCategory() != null) {
-            String[] tokens = filter.getCategory().split("::");
-            for (String category : tokens) {
+            if (!filter.getCategory().equalsIgnoreCase("ALL")) {
                 List<SearchOperation> joinOperations = List.of(SearchOperation.EQUAL);
-                List<Object> joinValues = List.of(category.toUpperCase());
+                List<Object> joinValues = List.of(filter.getCategory().toUpperCase());
                 SearchCriteria categorySearchCriteria = SearchCriteria.builder()
                         .key("name")
                         .operation("join")
@@ -40,8 +39,12 @@ public class ProductSpecificationBuilder {
                 params.add(categorySearchCriteria);
             }
         }
-        if (filter.getGender() != null) {
-            params.add(new SearchCriteria("gender", "eq", filter.getGender().toUpperCase(), false));
+        if (filter.getRating() != null) {
+            params.add(new SearchCriteria("rating", "ge", filter.getRating(), false));
+        }
+        if (filter.getGender() != null && !filter.getGender().isEmpty()) {
+            params.add(new SearchCriteria("gender", "eq", filter.getGender(), true));
+
         }
         if (filter.getStock() != null) {
             switch (filter.getStock().toUpperCase()) {
@@ -107,11 +110,11 @@ public class ProductSpecificationBuilder {
                 }
             }
         }
-        if(filter.getPublish()!=null){
+        if (filter.getPublish() != null) {
             String publish = filter.getPublish().toUpperCase();
-            if(publish.equals(PUBLISH)){
+            if (publish.equals(PUBLISH)) {
                 params.add(new SearchCriteria("publish", "eq", true, false));
-            }else if(publish.equals(DRAFT)){
+            } else if (publish.equals(DRAFT)) {
                 params.add(new SearchCriteria("publish", "eq", false, false));
             }
         }
@@ -128,9 +131,7 @@ public class ProductSpecificationBuilder {
         }
         Specification<Product> result = new ProductSpecification(params.get(0));
         for (int i = 1; i < params.size(); i++) {
-            result = params.get(i).isOrPredicate()
-                    ? Specification.where(result).or(new ProductSpecification(params.get(i)))
-                    : Specification.where(result).and(new ProductSpecification(params.get(i)));
+            result = Specification.where(result).and(new ProductSpecification(params.get(i)));
         }
         return result;
     }

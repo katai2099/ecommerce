@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ProductFilter {
-    private String query;//1
+    private String q;//1
     private String sort;//1
     private String category;//1
     private String stock;//1
@@ -12,6 +12,6 @@ public class ProductFilter {
     private String gender;//1
     private double pmin= 0;//1
     private double pmax = 10000;//1
-    private String rating;
+    private Integer rating=0;
     private int page = 1;//1
 }

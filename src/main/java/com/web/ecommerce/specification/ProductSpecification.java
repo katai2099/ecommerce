@@ -24,7 +24,9 @@ public class ProductSpecification implements Specification<Product> {
         String strToSearch = criteria.getValue().toString().toUpperCase();
         switch (SearchOperation.getSimpleOperation(criteria.getOperation())) {
             case EQUAL -> {
-                if (root.get(criteria.getKey()).getJavaType() == String.class) {
+                if (criteria.isOrPredicate()) {
+                    return builder.or(constructOrPredicates(root, builder, criteria).toArray(new Predicate[0]));
+                } else if (root.get(criteria.getKey()).getJavaType() == String.class) {
                     return builder.like(
                             builder.upper(root.get(criteria.getKey())), "%" + strToSearch + "%");
                 } else if (root.get(criteria.getKey()).getJavaType().isEnum()) {
@@ -59,6 +61,9 @@ public class ProductSpecification implements Specification<Product> {
                     ));
                     return query.getRestriction();
                 }
+                if (criteria.isOrPredicate()) {
+                    return builder.or(constructOrPredicates(root, builder, criteria).toArray(new Predicate[0]));
+                }
                 return predicates.get(0);
             }
             default -> {
@@ -91,6 +96,9 @@ public class ProductSpecification implements Specification<Product> {
                 }
             } else {
                 if (operation == SearchOperation.EQUAL) {
+                    if (criteria.isOrPredicate()) {
+                        return constructOrPredicates(root, builder, criteria);
+                    }
                     predicate = builder.equal(
                             builder.upper(root.get(criteria.getJoinTable()).get(criteria.getKey())),
                             criteria.getJoinValues().get(i).toString()
@@ -98,7 +106,30 @@ public class ProductSpecification implements Specification<Product> {
                 }
             }
             predicateList.add(predicate);
+        }
+        return predicateList;
+    }
 
+    private List<Predicate> constructOrPredicates(Root<Product> root,
+                                                  CriteriaBuilder builder,
+                                                  SearchCriteria criteria) {
+        List<Predicate> predicateList = new ArrayList<>();
+        if (criteria.getOperation().equals("join")) {
+            String[] tokens = criteria.getJoinValues().get(0).toString().split("::");
+            for (String token : tokens) {
+                Predicate pred = builder.equal(
+                        builder.upper(root.get(criteria.getJoinTable()).get(criteria.getKey())),
+                        token);
+                predicateList.add(pred);
+            }
+        } else {
+            String[] tokens = criteria.getValue().toString().split("::");
+            for (String token : tokens) {
+                Predicate pred = builder.equal(
+                        builder.upper(root.get(criteria.getKey())),
+                        token);
+                predicateList.add(pred);
+            }
         }
         return predicateList;
     }

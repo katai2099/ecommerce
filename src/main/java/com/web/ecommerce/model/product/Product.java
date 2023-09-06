@@ -26,6 +26,7 @@ public class Product {
     private String description;
     private double price;
     private boolean publish;
+    private double rating;
 
     @Builder.Default()
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

@@ -69,7 +69,7 @@ public class ProductService {
         return PaginationResponse.<ProductDTO>builder()
                 .currentPage(filter.getPage())
                 .totalPage(products.getTotalPages())
-                .totalItem(products.getNumberOfElements())
+                .totalItem(products.getTotalElements())
                 .data(ProductDTO.toProductDTOs(products.toList()))
                 .build();
     }
@@ -110,7 +110,7 @@ public class ProductService {
 
 
     @Transactional
-    public Product addNewProduct(CreateProductRequest createProductRequest, List<MultipartFile> files) {
+    public ProductDTO addNewProduct(CreateProductRequest createProductRequest, List<MultipartFile> files) {
 
         Category category = categoryRepository.findById(createProductRequest.getCategory().getId())
                 .orElseThrow(() -> new InvalidContentException("The provided category does not exist. Please provide a valid category."));
@@ -135,7 +135,8 @@ public class ProductService {
         }
         List<String> urls = uploadProductImages(files, newProduct);
         createProductImages(urls, newProduct);
-        return productRepository.save(newProduct);
+        Product prod = productRepository.save(newProduct);
+        return ProductDTO.toProductDTO(prod);
     }
 
     private void createProductImages(List<String> urls, Product product) {

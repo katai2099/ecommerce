@@ -14,22 +14,28 @@ public class ProductDTO {
     private String description;
     private double price;
     private boolean publish;
+    private String gender;
     private LocalDateTime createdAt;
     private CategoryDTO category;
     private List<ProductSizeDTO> productSizes;
     private List<ProductImageDTO> images;
+    private double rating;
+    private int totalReview;
 
     public static ProductDTO toProductDTO(Product product) {
         ProductDTO dto = new ProductDTO();
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
+        dto.setGender(product.getGender().toString());
         dto.setPrice(product.getPrice());
         dto.setPublish(product.isPublish());
         dto.setCreatedAt(product.getCreatedAt());
         dto.setCategory(CategoryDTO.toCategoryDTO(product.getCategory()));
         dto.setProductSizes(product.getProductSizes().stream().map(ProductSizeDTO::toProductSizeDTO).collect(Collectors.toList()));
         dto.setImages(product.getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
+        dto.setRating(product.getRating());
+        dto.setTotalReview(product.getReviews().size());
         return dto;
     }
 
