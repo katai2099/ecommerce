@@ -36,12 +36,12 @@ public class Product {
     @JoinColumn(name = "category_id",referencedColumnName = "id")
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonManagedReference("product-sizes")
     @Builder.Default
     private List<ProductSize> productSizes = new LinkedList<>();
 
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonManagedReference("product-images")
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();

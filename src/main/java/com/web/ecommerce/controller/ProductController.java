@@ -1,10 +1,7 @@
 package com.web.ecommerce.controller;
 
 import com.web.ecommerce.dto.PaginationResponse;
-import com.web.ecommerce.dto.product.CreateProductRequest;
-import com.web.ecommerce.dto.product.NewReview;
-import com.web.ecommerce.dto.product.ProductDTO;
-import com.web.ecommerce.dto.product.ReviewDTO;
+import com.web.ecommerce.dto.product.*;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.model.product.Size;
@@ -57,10 +54,10 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>>searchProducts(@RequestParam String gender,
-                                                          @RequestParam String searchTerm,
-                                                          @RequestParam int page){
-        List<ProductDTO> products = productService.searchProducts(gender.toUpperCase(),page,searchTerm);
+    public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String gender,
+                                                           @RequestParam String searchTerm,
+                                                           @RequestParam int page) {
+        List<ProductDTO> products = productService.searchProducts(gender.toUpperCase(), page, searchTerm);
         return ResponseEntity.ok(products);
     }
 
@@ -78,19 +75,19 @@ public class ProductController {
 
     @PostMapping(value = "/", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ProductDTO> addNewProduct(@RequestPart(name = "productData") CreateProductRequest productData,
-                                                 @RequestPart List<MultipartFile> files) {
-        ProductDTO product = productService.addNewProduct(productData,files);
+                                                    @RequestPart List<MultipartFile> files) {
+        ProductDTO product = productService.addNewProduct(productData, files);
         return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "/{productId}",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(value = "/{productId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> updateProduct(@PathVariable Long productId,
                                                 @RequestPart CreateProductRequest productData,
-                                                @RequestPart(required = false,name = "files[]") List<MultipartFile> files) {
+                                                @RequestPart(required = false, name = "files[]") List<MultipartFile> files) {
         if (!productId.equals(productData.getId())) {
-            throw  new InvalidContentException("Product ID mismatch");
+            throw new InvalidContentException("Product ID mismatch");
         }
-        productService.updateProduct(productData,files);
+        productService.updateProduct(productData, files);
         return ResponseEntity.ok("Product updated successfully.");
     }
 
@@ -101,20 +98,18 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}/reviews")
-    public ResponseEntity<ReviewDTO> getReviews(@PathVariable Long productId,
-                                                @RequestParam int page){
-        ReviewDTO dto = reviewService.getReviews(productId,page);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<ProductReviewDTO> getReviews(@PathVariable Long productId,
+                                                       @RequestParam(required = false, defaultValue = "1") Integer page) {
+        ProductReviewDTO productReviewDTO = reviewService.getReviews(productId, page);
+        return ResponseEntity.ok(productReviewDTO);
     }
 
     @PutMapping("/{productId}/reviews")
     public ResponseEntity<String> submitReview(@PathVariable Long productId,
-                                               @RequestBody NewReview newReview){
-        reviewService.saveReview(productId,newReview);
+                                               @RequestBody NewReview newReview) {
+        reviewService.saveReview(productId, newReview);
         return ResponseEntity.ok("Successfully submitted");
     }
-
-
 
 
 }
