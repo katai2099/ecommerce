@@ -107,20 +107,14 @@ public class ProductController {
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping("/{productId}/reviews")
+    @PutMapping("/{productId}/reviews")
     public ResponseEntity<String> submitReview(@PathVariable Long productId,
                                                @RequestBody NewReview newReview){
         reviewService.saveReview(productId,newReview);
         return ResponseEntity.ok("Successfully submitted");
     }
 
-    @PutMapping("/{productId}/reviews/{reviewId}")
-    public ResponseEntity<String> updateReview(@PathVariable Long productId,
-                                               @PathVariable Long reviewId,
-                                               @RequestBody NewReview newReview){
-        reviewService.updateReview(productId,reviewId,newReview);
-        return ResponseEntity.ok("Successfully updated");
-    }
+
 
 
 }

@@ -18,7 +18,7 @@ import java.util.Objects;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductSize {
+public class ProductSize implements Comparable<ProductSize>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -54,4 +54,21 @@ public class ProductSize {
     public int hashCode() {
         return Objects.hash(id, size.getName());
     }
+
+    @Override
+    public int compareTo(ProductSize productSize) {
+        int index1 = getIndex(this.size.getName());
+        int index2 = getIndex(productSize.size.getName());
+        return Integer.compare(index1,index2);
+    }
+    public int getIndex(String size){
+        final String[] sizeOrder = {"S","M","L","XL"};
+        for(int i=0;i<sizeOrder.length;i++){
+            if(sizeOrder[i].equals(size)){
+                return i;
+            }
+        }
+        return sizeOrder.length;
+    }
+
 }

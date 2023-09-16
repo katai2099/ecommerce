@@ -68,6 +68,9 @@ public class CartService {
         ProductSize productSize = productSizeRepository.
                 findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
                 .orElseThrow(() -> new InvalidContentException("Product with provided size does not exist"));
+        if(productSize.getStockCount()==0){
+            throw new InvalidContentException("Product out of stock");
+        }
         Cart currentCart;
         if (optionalCart.isPresent()) {
             currentCart = optionalCart.get();
@@ -82,10 +85,11 @@ public class CartService {
                 .stream()
                 .filter(item -> item.getProductSize().getId().equals(productSize.getId()))
                 .findFirst();
+
         if (existingCartItem.isPresent()) {
             CartItem item = existingCartItem.get();
             if (item.getQuantity() >= productSize.getStockCount()) {
-                throw new InvalidContentException("Product out of stock");
+                throw new InvalidContentException("Requested quantity is not available");
             }
             item.setQuantity(item.getQuantity() + 1);
         } else {

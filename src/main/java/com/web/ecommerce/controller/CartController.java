@@ -38,7 +38,7 @@ public class CartController {
         return new ResponseEntity<>("Successfully updated",HttpStatus.OK);
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<List<CartItemDTO>> getCartItems(){
         List<CartItemDTO> items = cartService.getCartItems();
         return new ResponseEntity<>(items,HttpStatus.OK);

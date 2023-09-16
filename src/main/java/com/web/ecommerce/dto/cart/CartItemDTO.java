@@ -12,22 +12,23 @@ import java.util.stream.Collectors;
 
 @Data
 public class CartItemDTO {
-    private ProductDTO product;
     private int quantity;
+    private ProductDTO product;
 
     public static CartItemDTO toCartItemDTO(CartItem cartItem) {
-        CartItemDTO dto = new CartItemDTO();
+        CartItemDTO cartDto = new CartItemDTO();
         ProductDTO productDTO = new ProductDTO();
-        dto.setProduct(productDTO);
+        cartDto.setProduct(productDTO);
         if (cartItem != null && cartItem.getProductSize() != null) {
-            dto.getProduct().setId(cartItem.getProductSize().getProduct().getId());
-            dto.getProduct().setName(cartItem.getProductSize().getProduct().getName());
-            dto.getProduct().getProductSizes().add(ProductSizeDTO.toProductSizeDTO(cartItem.getProductSize()));
-            dto.getProduct().setPrice(cartItem.getProductSize().getProduct().getPrice());
-            dto.getProduct().setImages(cartItem.getProductSize().getProduct().getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
-            dto.setQuantity(cartItem.getQuantity());
+            cartDto.getProduct().setId(cartItem.getProductSize().getProduct().getId());
+            cartDto.getProduct().setName(cartItem.getProductSize().getProduct().getName());
+            ProductSizeDTO test = ProductSizeDTO.toProductSizeDTO(cartItem.getProductSize());
+            cartDto.getProduct().getProductSizes().add(test);
+            cartDto.getProduct().setPrice(cartItem.getProductSize().getProduct().getPrice());
+            cartDto.getProduct().setImages(cartItem.getProductSize().getProduct().getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
+            cartDto.setQuantity(cartItem.getQuantity());
         }
-        return dto;
+        return cartDto;
     }
 
     public static List<CartItemDTO> toCartItemDTOs(Set<CartItem> cartItems) {

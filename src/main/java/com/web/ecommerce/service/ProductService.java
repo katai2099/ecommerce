@@ -31,10 +31,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.web.ecommerce.util.Constant.*;
@@ -121,6 +118,7 @@ public class ProductService {
                 .price(createProductRequest.getPrice())
                 .category(category)
                 .build();
+        List<ProductSize> productSizes = new ArrayList<>();
         for (int i = 0; i < createProductRequest.getProductSizes().size(); i++) {
             if (createProductRequest.getProductSizes().get(i).getStockCount() > 0) {
                 Size size = sizeRepository.findByName(createProductRequest.getProductSizes().get(i).getSize().getName())
@@ -130,9 +128,12 @@ public class ProductService {
                         .size(size)
                         .stockCount(createProductRequest.getProductSizes().get(i).getStockCount())
                         .build();
-                newProduct.getProductSizes().add(productSize);
+                productSizes.add(productSize);
             }
         }
+        Collections.sort(productSizes);
+        newProduct.setProductSizes(productSizes);
+
         List<String> urls = uploadProductImages(files, newProduct);
         createProductImages(urls, newProduct);
         Product prod = productRepository.save(newProduct);

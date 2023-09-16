@@ -21,4 +21,6 @@ public class Size {
     @OneToMany(mappedBy = "size")
     @JsonIgnore
     private List<ProductSize> productSizes;
+
+
 }

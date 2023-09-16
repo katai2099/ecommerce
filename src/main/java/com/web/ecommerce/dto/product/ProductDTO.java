@@ -4,6 +4,7 @@ import com.web.ecommerce.model.product.Product;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,8 +18,8 @@ public class ProductDTO {
     private String gender;
     private LocalDateTime createdAt;
     private CategoryDTO category;
-    private List<ProductSizeDTO> productSizes;
-    private List<ProductImageDTO> images;
+    private List<ProductSizeDTO> productSizes = new ArrayList<>();
+    private List<ProductImageDTO> images = new ArrayList<>();
     private double rating;
     private int totalReview;
 
@@ -35,7 +36,7 @@ public class ProductDTO {
         dto.setProductSizes(product.getProductSizes().stream().map(ProductSizeDTO::toProductSizeDTO).collect(Collectors.toList()));
         dto.setImages(product.getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
         dto.setRating(product.getRating());
-        dto.setTotalReview(product.getReviews().size());
+        dto.setTotalReview(product.getReviews()!=null ? product.getReviews().size() : 0);
         return dto;
     }
 
