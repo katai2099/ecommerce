@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Data
 public class CartItemDTO {
+    private long id;
     private int quantity;
     private ProductDTO product;
 
@@ -27,6 +28,7 @@ public class CartItemDTO {
             cartDto.getProduct().setPrice(cartItem.getProductSize().getProduct().getPrice());
             cartDto.getProduct().setImages(cartItem.getProductSize().getProduct().getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
             cartDto.setQuantity(cartItem.getQuantity());
+            cartDto.setId(cartItem.getId());
         }
         return cartDto;
     }
