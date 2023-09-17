@@ -63,39 +63,34 @@ public class CartService {
 
     @Transactional
     public Long addToCart(NewCartDTO newCartItem) {
-        Long cartItemId;
         Long userId = getUserIdFromSecurityContext();
-        Optional<Cart> optionalCart = cartRepository.findCartByUserId(userId);
         ProductSize productSize = productSizeRepository.
                 findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
                 .orElseThrow(() -> new InvalidContentException("Product with provided size does not exist"));
-        if(productSize.getStockCount()==0){
+        if (productSize.getStockCount() == 0) {
             throw new InvalidContentException("Product out of stock");
         }
-        Cart currentCart;
-        if (optionalCart.isPresent()) {
-            currentCart = optionalCart.get();
-        } else {
-            currentCart = new Cart();
-            User user = new User();
-            user.setId(userId);
-            currentCart.setUser(user);
-            cartRepository.save(currentCart);
-        }
-        Optional<CartItem> existingCartItem = currentCart
+        Cart currentCart = cartRepository.findCartByUserId(userId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    User user = new User();
+                    user.setId(userId);
+                    newCart.setUser(user);
+                    return cartRepository.save(newCart);
+                });
+        CartItem existingCartItem = currentCart
                 .getCartItems()
                 .stream()
                 .filter(item -> item.getProductSize().getId().equals(productSize.getId()))
-                .findFirst();
-
-        if (existingCartItem.isPresent()) {
-            CartItem item = existingCartItem.get();
-            if (item.getQuantity() >= productSize.getStockCount()) {
+                .findFirst()
+                .orElse(null);
+        if (existingCartItem != null) {
+            if (existingCartItem.getQuantity() >= productSize.getStockCount()) {
                 throw new InvalidContentException("Requested quantity is not available");
             }
-            item.setQuantity(item.getQuantity() + 1);
-            cartItemId=item.getId();
-            cartItemRepository.save(item);
+            existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
+            cartItemRepository.save(existingCartItem);
+            return existingCartItem.getId();
         } else {
             CartItem cartItem = new CartItem();
             cartItem.setQuantity(1);
@@ -103,9 +98,8 @@ public class CartService {
             cartItem.setCart(currentCart);
             currentCart.getCartItems().add(cartItem);
             CartItem savedCartItem = cartItemRepository.save(cartItem);
-            cartItemId = savedCartItem.getId();
+            return savedCartItem.getId();
         }
-        return cartItemId;
     }
 
     @Transactional
@@ -133,20 +127,20 @@ public class CartService {
     @Transactional
     public void checkout() {
         Long userId = getUserIdFromSecurityContext();
-        User user = userRepository.findById(userId).orElseThrow(()->new InvalidContentException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new InvalidContentException("User not found"));
         Cart cart = cartRepository.findCartByUserId(userId)
                 .orElseThrow(() -> new InvalidContentException("No items in the cart"));
         Set<CartItem> cartItems = cart.getCartItems();
         Order order = new Order();
         double total = 0;
-        for(CartItem item: cartItems){
+        for (CartItem item : cartItems) {
             int quantity = item.getQuantity();
             double price = item.getProductSize().getProduct().getPrice();
             int productStockCount = item.getProductSize().getStockCount();
-            if(productStockCount == 0){
+            if (productStockCount == 0) {
                 throw new InvalidContentException("Product with product Size id " + item.getProductSize().getId() + " out of stock");
             }
-            if(productStockCount < quantity){
+            if (productStockCount < quantity) {
                 throw new InvalidContentException("Product with product Size id " + item.getProductSize().getId() + " has only " + productStockCount + " left");
             }
             OrderDetail orderDetail = new OrderDetail();
@@ -157,14 +151,14 @@ public class CartService {
             //calculate total
             total += quantity * price;
             //decrease stock count
-            item.getProductSize().setStockCount(productStockCount- quantity);
+            item.getProductSize().setStockCount(productStockCount - quantity);
             order.addOrderDetail(orderDetail);
         }
         order.setOrderDate(LocalDateTime.now());
         order.setTotalPrice(total);
         order.setUser(user);
         OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.PURCHASED.toString())
-                .orElseThrow(()->new RuntimeException("Internal Server Error"));
+                .orElseThrow(() -> new RuntimeException("Internal Server Error"));
         orderStatus.addOrder(order);
         order.setOrderStatus(orderStatus);
         user.addOrder(order);
