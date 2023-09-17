@@ -24,9 +24,9 @@ public class CartController {
     }
 
     @PostMapping("/add-to-cart")
-    public ResponseEntity<String> addToCart(@RequestBody NewCartDTO cartItem){
-        cartService.addToCart(cartItem);
-        return new ResponseEntity<>("Successfully added", HttpStatus.OK);
+    public ResponseEntity<Long> addToCart(@RequestBody NewCartDTO cartItem){
+        Long cartItemId = cartService.addToCart(cartItem);
+        return new ResponseEntity<>(cartItemId, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

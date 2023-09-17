@@ -62,7 +62,8 @@ public class CartService {
     }
 
     @Transactional
-    public void addToCart(NewCartDTO newCartItem) {
+    public Long addToCart(NewCartDTO newCartItem) {
+        Long cartItemId;
         Long userId = getUserIdFromSecurityContext();
         Optional<Cart> optionalCart = cartRepository.findCartByUserId(userId);
         ProductSize productSize = productSizeRepository.
@@ -79,6 +80,7 @@ public class CartService {
             User user = new User();
             user.setId(userId);
             currentCart.setUser(user);
+            cartRepository.save(currentCart);
         }
         Optional<CartItem> existingCartItem = currentCart
                 .getCartItems()
@@ -92,18 +94,23 @@ public class CartService {
                 throw new InvalidContentException("Requested quantity is not available");
             }
             item.setQuantity(item.getQuantity() + 1);
+            cartItemId=item.getId();
+            cartItemRepository.save(item);
         } else {
             CartItem cartItem = new CartItem();
             cartItem.setQuantity(1);
             cartItem.setProductSize(productSize);
             cartItem.setCart(currentCart);
             currentCart.getCartItems().add(cartItem);
+            CartItem savedCartItem = cartItemRepository.save(cartItem);
+            cartItemId = savedCartItem.getId();
         }
-        cartRepository.save(currentCart);
+        return cartItemId;
     }
 
     @Transactional
     public void updateCart(UpdateCartDTO item) {
+        //TODO: check if caller is actually the owner of cart item
         CartItem dbCartItem = cartItemRepository.findById(item.getCartItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("Item associate with cart does not exist"));
         if (item.getQuantity() == 0) {
@@ -115,7 +122,7 @@ public class CartService {
             if (optionalProductSize.isPresent()) {
                 ProductSize productSize = optionalProductSize.get();
                 if (item.getQuantity() > productSize.getStockCount()) {
-                    throw new InvalidContentException("Product out of stock");
+                    throw new InvalidContentException("Request quantity is not available");
                 }
             }
             dbCartItem.setQuantity(item.getQuantity());
