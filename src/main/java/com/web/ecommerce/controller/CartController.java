@@ -30,7 +30,8 @@ public class CartController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateCart(@RequestBody UpdateCartDTO cartItem, @PathVariable Long id){
+    public ResponseEntity<String> updateCart(@RequestBody UpdateCartDTO cartItem,
+                                             @PathVariable Long id){
         if(!Objects.equals(cartItem.getCartItemId(), id)){
             throw new InvalidContentException("Cart ID mismatch");
         }

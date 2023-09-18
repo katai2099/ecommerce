@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity(name = "users")
@@ -30,9 +31,9 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private Role role;
 
-    @OneToOne(mappedBy = "user")
+    @OneToMany(mappedBy = "user")
     @JsonManagedReference(value = "user-address")
-    private Address address;
+    private Set<Address> address;
 
     @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-orders")
@@ -45,9 +46,6 @@ public class User {
     @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-reviews")
     private List<Review> reviews = new ArrayList<>();
-
-
-
     public void addOrder(Order order){
         orders.add(order);
     }

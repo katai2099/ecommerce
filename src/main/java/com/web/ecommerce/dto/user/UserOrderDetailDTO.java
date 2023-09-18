@@ -17,11 +17,11 @@ public class UserOrderDetailDTO {
     public static UserOrderDetailDTO toUserOrderDetailDTO(User user){
         UserOrderDetailDTO dto = new UserOrderDetailDTO();
         dto.setEmail(user.getEmail());
-        dto.setStreet(user.getAddress().getStreet());
-        dto.setCity(user.getAddress().getCity());
-        dto.setState(user.getAddress().getState());
-        dto.setCountry(user.getAddress().getCountry());
-        dto.setZip(user.getAddress().getZip());
+        dto.setStreet(user.getAddress().stream().toList().get(1).getStreet());
+        dto.setCity(user.getAddress().stream().toList().get(1).getCity());
+//        dto.setState(user.getAddresses().stream().toList().get(1).getState());
+        dto.setCountry(user.getAddress().stream().toList().get(1).getCountry());
+        dto.setZip(user.getAddress().stream().toList().get(1).getZipCode());
         return dto;
     }
 
