@@ -1,10 +1,7 @@
 package com.web.ecommerce.service;
 
 import com.web.ecommerce.configuration.security.JwtService;
-import com.web.ecommerce.dto.user.AddressDTO;
-import com.web.ecommerce.dto.user.SignInRequest;
-import com.web.ecommerce.dto.user.SignUpRequest;
-import com.web.ecommerce.dto.user.UserDTO;
+import com.web.ecommerce.dto.user.*;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.exception.ResourceNotFoundException;
 import com.web.ecommerce.model.user.Address;
@@ -18,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,25 +41,29 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO register(SignUpRequest user) {
-        Optional<User> dbUser = userRepository.findByEmail(user.getEmail());
+    public UserDTO register(SignUpRequest signUpRequest) {
+        byte[] decodedEmailBytes = Base64.getDecoder().decode(signUpRequest.getEmail());
+        String decodedEmail = new String(decodedEmailBytes);
+        byte[] decodedPasswordBytes = Base64.getDecoder().decode(signUpRequest.getPassword());
+        String decodedPassword = new String(decodedPasswordBytes);
+        Optional<User> dbUser = userRepository.findByEmail(decodedEmail);
         if (dbUser.isPresent()) {
-            throw new InvalidContentException("User with email " + user.getEmail() + " already existed");
+            throw new InvalidContentException("User with email " + signUpRequest.getEmail() + " already existed");
         }
-        User newUser = User.builder()
-                .firstname(user.getFirstname())
-                .lastname(user.getLastname())
-                .email(user.getEmail())
-                .password(bCryptPasswordEncoder.encode(user.getPassword()))
+        User user = User.builder()
+                .firstname(signUpRequest.getFirstname())
+                .lastname(signUpRequest.getLastname())
+                .email(decodedEmail)
+                .password(bCryptPasswordEncoder.encode(decodedPassword))
                 .role(Role.ROLE_USER)
                 .build();
-        userRepository.save(newUser);
-        String jwt = jwtService.generateToken(Map.of("username", user.getEmail()));
+        User savedUser = userRepository.save(user);
+        String jwt = jwtService.generateToken(Map.of("username", decodedEmail));
         UserDTO userDTO = UserDTO.builder()
-                .firstname(user.getFirstname())
-                .lastname(user.getLastname())
-                .email(user.getEmail())
-                .role(newUser.getRole().name())
+                .firstname(savedUser.getFirstname())
+                .lastname(savedUser.getLastname())
+                .email(savedUser.getEmail())
+                .role(savedUser.getRole().name())
                 .token(jwt)
                 .build();
         return userDTO;
@@ -69,10 +71,14 @@ public class UserService {
 
     @Transactional
     public UserDTO login(SignInRequest signInRequest) {
-        User user = userRepository.findByEmail(signInRequest.getEmail())
+        byte[] decodedEmailBytes = Base64.getDecoder().decode(signInRequest.getEmail());
+        String decodedEmail = new String(decodedEmailBytes);
+        byte[] decodedPasswordBytes = Base64.getDecoder().decode(signInRequest.getPassword());
+        String decodedPassword = new String(decodedPasswordBytes);
+        User user = userRepository.findByEmail(decodedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials."));
-        if (bCryptPasswordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
-            String jwt = jwtService.generateToken(Map.of("username", signInRequest.getEmail()));
+        if (bCryptPasswordEncoder.matches(decodedPassword, user.getPassword())) {
+            String jwt = jwtService.generateToken(Map.of("username", decodedEmail));
             UserDTO userDTO = UserDTO.builder()
                     .firstname(user.getFirstname())
                     .lastname(user.getLastname())
@@ -195,5 +201,26 @@ public class UserService {
                 addressRepository.save(defaultAddress);
             }
         }
+    }
+
+    @Transactional
+    public Long updateDetails(UpdateDetailsRequest detailsRequest) {
+        Long userId = getUserIdFromSecurityContext();
+        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        user.setFirstname(detailsRequest.getFirstname());
+        user.setLastname(detailsRequest.getLastname());
+        User updatedUser = userRepository.save(user);
+        return updatedUser.getId();
+    }
+
+    @Transactional
+    public void updatePassword(NewPasswordRequest passwordRequest) {
+        Long userId = getUserIdFromSecurityContext();
+        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        byte[] decodedBytes = Base64.getDecoder().decode(passwordRequest.getPassword());
+        String decodedPassword = new String(decodedBytes);
+        String encryptedPassword = bCryptPasswordEncoder.encode(decodedPassword);
+        user.setPassword(encryptedPassword);
+        userRepository.save(user);
     }
 }

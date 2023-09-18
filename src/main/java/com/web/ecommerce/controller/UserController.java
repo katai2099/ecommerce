@@ -1,6 +1,8 @@
 package com.web.ecommerce.controller;
 
 import com.web.ecommerce.dto.user.AddressDTO;
+import com.web.ecommerce.dto.user.NewPasswordRequest;
+import com.web.ecommerce.dto.user.UpdateDetailsRequest;
 import com.web.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,18 @@ public class UserController {
     @Autowired
     public UserController (UserService userService){
         this.userService = userService;
+    }
+
+    @PutMapping("/details")
+    public ResponseEntity<Long> updateDetails(@RequestBody UpdateDetailsRequest detailsRequest){
+        Long userId = userService.updateDetails(detailsRequest);
+        return ResponseEntity.ok(userId);
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestBody NewPasswordRequest passwordRequest){
+        userService.updatePassword(passwordRequest);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/address")
