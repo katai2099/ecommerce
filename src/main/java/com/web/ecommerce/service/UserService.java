@@ -10,6 +10,7 @@ import com.web.ecommerce.model.user.User;
 import com.web.ecommerce.repository.AddressRepository;
 import com.web.ecommerce.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -174,7 +175,7 @@ public class UserService {
 
     public List<AddressDTO> getAddresses() {
         Long userId = getUserIdFromSecurityContext();
-        List<Address> addresses = addressRepository.findAllByUserId(userId);
+        List<Address> addresses = addressRepository.findAllByUserId(userId, Sort.by("isDefault").descending());
         return AddressDTO.addressDTOS(addresses);
     }
 

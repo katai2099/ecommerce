@@ -1,20 +1,25 @@
 package com.web.ecommerce.dto.order;
 
+import com.web.ecommerce.dto.user.AddressDTO;
 import com.web.ecommerce.model.order.Order;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
 public class OrderDTO {
-    private Long id;
+    private UUID id;
     private String status;
     private LocalDateTime orderDate;
     private double totalPrice;
+    private AddressDTO deliveryAddress;
+    private AddressDTO billingAddress;
+    private List<OrderSummary> orderDetails ;
 
     public static OrderDTO toOrderDTO(Order order) {
         OrderDTO dto = new OrderDTO();
@@ -22,6 +27,9 @@ public class OrderDTO {
         dto.setStatus(order.getOrderStatus().getName());
         dto.setOrderDate(order.getOrderDate());
         dto.setTotalPrice(order.getTotalPrice());
+        dto.setBillingAddress(AddressDTO.toAddressDTO(order.getBillingAddress()));
+        dto.setDeliveryAddress(AddressDTO.toAddressDTO(order.getDeliveryAddress()));
+        dto.setOrderDetails(OrderSummary.toOrderSummaries(order.getOrderDetails()));
         return dto;
     }
 

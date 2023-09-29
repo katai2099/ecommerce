@@ -6,12 +6,15 @@ import com.web.ecommerce.dto.cart.UpdateCartDTO;
 import com.web.ecommerce.enumeration.OrderStatusEnum;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.exception.ResourceNotFoundException;
+import com.web.ecommerce.model.CheckoutResponse;
+import com.web.ecommerce.model.PlaceOrderRequest;
 import com.web.ecommerce.model.order.Order;
 import com.web.ecommerce.model.order.OrderDetail;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.model.product.Cart;
 import com.web.ecommerce.model.product.CartItem;
 import com.web.ecommerce.model.product.ProductSize;
+import com.web.ecommerce.model.user.Address;
 import com.web.ecommerce.model.user.User;
 import com.web.ecommerce.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 
@@ -34,6 +34,8 @@ public class CartService {
     private final UserRepository userRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final OrderRepository orderRepository;
+    private final AddressRepository addressRepository;
+
 
     @Autowired
     public CartService(CartRepository cartRepository,
@@ -41,13 +43,14 @@ public class CartService {
                        ProductSizeRepository productSizeRepository,
                        UserRepository userRepository,
                        OrderStatusRepository orderStatusRepository,
-                       OrderRepository orderRepository) {
+                       OrderRepository orderRepository, AddressRepository addressRepository) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productSizeRepository = productSizeRepository;
         this.userRepository = userRepository;
         this.orderStatusRepository = orderStatusRepository;
         this.orderRepository = orderRepository;
+        this.addressRepository = addressRepository;
     }
 
     public List<CartItemDTO> getCartItems() {
@@ -124,14 +127,72 @@ public class CartService {
         }
     }
 
+
     @Transactional
-    public void checkout() {
+    public String placeOrder(PlaceOrderRequest request) {
         Long userId = getUserIdFromSecurityContext();
         User user = userRepository.findById(userId).orElseThrow(() -> new InvalidContentException("User not found"));
         Cart cart = cartRepository.findCartByUserId(userId)
                 .orElseThrow(() -> new InvalidContentException("No items in the cart"));
         Set<CartItem> cartItems = cart.getCartItems();
         Order order = new Order();
+
+        Address deliveryAddress = request.getDeliveryAddress();
+        Address billingAddress = request.getBillingAddress();
+        Address dbDeliveryAddress = addressRepository.findById(deliveryAddress.getId())
+                .orElseGet(() -> {
+                    deliveryAddress.setUser(user);
+                    return addressRepository.save(deliveryAddress);
+                });
+        Address dbBillingAddress = addressRepository.findById(billingAddress.getId())
+                .orElseGet(() -> {
+                    billingAddress.setUser(user);
+                    return addressRepository.save(billingAddress);
+                });
+
+        double total = 0;
+        for (CartItem item : cartItems) {
+            int quantity = item.getQuantity();
+            double price = item.getProductSize().getProduct().getPrice();
+            int productStockCount = item.getProductSize().getStockCount();
+            total += quantity * price;
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setQuantity(quantity);
+            orderDetail.setProductSize(item.getProductSize());
+            orderDetail.setPriceAtPurchase(price);
+            //decrease stock count
+            item.getProductSize().setStockCount(productStockCount - quantity);
+            order.addOrderDetail(orderDetail);
+        }
+        order.setDeliveryAddress(dbDeliveryAddress);
+        order.setBillingAddress(dbBillingAddress);
+        order.setStripePaymentIntentId(request.getStripePaymentIntentId());
+        order.setOrderDate(LocalDateTime.now());
+        order.setTotalPrice(total);
+        order.setUser(user);
+        OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.PURCHASED.toString())
+                .orElseThrow(() -> new RuntimeException("Internal Server Error"));
+        orderStatus.addOrder(order);
+        order.setOrderStatus(orderStatus);
+        user.addOrder(order);
+        Order savedOrder = orderRepository.save(order);
+        cartRepository.delete(user.getCart());
+        return savedOrder.getId().toString();
+    }
+
+    @Transactional
+
+    public CheckoutResponse checkout() {
+        Long userId = getUserIdFromSecurityContext();
+        Optional<Cart> dbCart = cartRepository.findCartByUserId(userId);
+        if (dbCart.isEmpty()) {
+            return CheckoutResponse.builder()
+                    .carts(new ArrayList<>())
+                    .total(0).build();
+        }
+        Cart cart = dbCart.get();
+        Set<CartItem> cartItems = cart.getCartItems();
         double total = 0;
         for (CartItem item : cartItems) {
             int quantity = item.getQuantity();
@@ -143,26 +204,14 @@ public class CartService {
             if (productStockCount < quantity) {
                 throw new InvalidContentException("Product with product Size id " + item.getProductSize().getId() + " has only " + productStockCount + " left");
             }
-            OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setOrder(order);
-            orderDetail.setQuantity(quantity);
-            orderDetail.setProductSize(item.getProductSize());
-            orderDetail.setPriceAtPurchase(price);
             //calculate total
             total += quantity * price;
-            //decrease stock count
-            item.getProductSize().setStockCount(productStockCount - quantity);
-            order.addOrderDetail(orderDetail);
         }
-        order.setOrderDate(LocalDateTime.now());
-        order.setTotalPrice(total);
-        order.setUser(user);
-        OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.PURCHASED.toString())
-                .orElseThrow(() -> new RuntimeException("Internal Server Error"));
-        orderStatus.addOrder(order);
-        order.setOrderStatus(orderStatus);
-        user.addOrder(order);
-        cartRepository.delete(user.getCart());
-        orderRepository.save(order);
+        List<CartItemDTO> carts = CartItemDTO.toCartItemDTOs(cart.getCartItems());
+        return CheckoutResponse.builder()
+                .carts(carts)
+                .total(total)
+                .build();
+
     }
 }

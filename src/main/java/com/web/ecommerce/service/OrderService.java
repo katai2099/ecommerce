@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 
@@ -57,8 +58,8 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDetailDTO getOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderDetailDTO getOrder(UUID orderId) {
+        Order order = orderRepository.findByOrderUuid(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order with Id " + orderId + " not found"));
         return OrderDetailDTO.toOrderDetailDTO(order);
     }
