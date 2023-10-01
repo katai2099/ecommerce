@@ -35,6 +35,7 @@ public class CartService {
     private final OrderStatusRepository orderStatusRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
+    private final StripeService stripeService;
 
 
     @Autowired
@@ -43,7 +44,7 @@ public class CartService {
                        ProductSizeRepository productSizeRepository,
                        UserRepository userRepository,
                        OrderStatusRepository orderStatusRepository,
-                       OrderRepository orderRepository, AddressRepository addressRepository) {
+                       OrderRepository orderRepository, AddressRepository addressRepository, StripeService stripeService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productSizeRepository = productSizeRepository;
@@ -51,6 +52,7 @@ public class CartService {
         this.orderStatusRepository = orderStatusRepository;
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
+        this.stripeService = stripeService;
     }
 
     public List<CartItemDTO> getCartItems() {
@@ -182,9 +184,9 @@ public class CartService {
     }
 
     @Transactional
-
     public CheckoutResponse checkout() {
         Long userId = getUserIdFromSecurityContext();
+        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User does not exist"));
         Optional<Cart> dbCart = cartRepository.findCartByUserId(userId);
         if (dbCart.isEmpty()) {
             return CheckoutResponse.builder()
@@ -208,6 +210,7 @@ public class CartService {
             total += quantity * price;
         }
         List<CartItemDTO> carts = CartItemDTO.toCartItemDTOs(cart.getCartItems());
+        stripeService.createNewStripeCustomer(user);
         return CheckoutResponse.builder()
                 .carts(carts)
                 .total(total)

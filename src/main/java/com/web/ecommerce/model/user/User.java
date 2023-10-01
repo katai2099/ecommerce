@@ -46,6 +46,11 @@ public class User {
     @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-reviews")
     private List<Review> reviews = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user")
+    @JsonManagedReference(value = "user-stripe-customer")
+    private StripeCustomer customer;
+
     public void addOrder(Order order){
         orders.add(order);
     }

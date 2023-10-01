@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.web.ecommerce.model.user.Address;
 import com.web.ecommerce.model.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,7 +14,9 @@ import java.util.UUID;
 
 @Entity()
 @Table(name = "orders")
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
@@ -27,11 +27,13 @@ public class Order {
     private double TotalPrice;
     private String stripePaymentIntentId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "delivery_address_id",referencedColumnName = "id")
+    @ToString.Exclude
     private Address deliveryAddress;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "billing_address_id",referencedColumnName = "id")
+    @ToString.Exclude
     private Address billingAddress;
 
     @ManyToOne
@@ -45,6 +47,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonManagedReference(value = "order-details")
+    @ToString.Exclude
     List<OrderDetail> orderDetails = new ArrayList<>();
 
     public void addOrderDetail(OrderDetail orderDetail){
