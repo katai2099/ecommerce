@@ -6,6 +6,7 @@ import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.web.ecommerce.exception.InternalServerException;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.ConfirmPaymentRequest;
 import com.web.ecommerce.model.NextActionResponse;
@@ -75,7 +76,7 @@ public class StripeService {
                     .clientSecret(paymentIntent.getClientSecret())
                     .build();
         } catch (StripeException e) {
-            throw new RuntimeException(e);
+            throw new InternalServerException();
         }
     }
 
@@ -96,7 +97,7 @@ public class StripeService {
             customer = Customer.create(customerParams);
         } catch (StripeException e) {
             //TODO handle stripe exception
-            throw new InvalidContentException(e.getMessage());
+            throw new InternalServerException();
         }
         StripeCustomer stripeCustomer = StripeCustomer.builder()
                 .customerId(customer.getId())
