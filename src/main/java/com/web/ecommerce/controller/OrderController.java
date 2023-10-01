@@ -42,10 +42,5 @@ public class OrderController {
         return ResponseEntity.ok("Order status update to " + newStatus + " completed");
     }
 
-    @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId){
-        orderService.cancelOrder(orderId);
-        return ResponseEntity.ok("Order cancel successfully");
-    }
 
 }

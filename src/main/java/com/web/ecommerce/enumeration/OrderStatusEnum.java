@@ -1,7 +1,7 @@
 package com.web.ecommerce.enumeration;
 
 public enum OrderStatusEnum {
-    PURCHASED, PROCESSING, SHIPPED, DELIVERED, CANCELLED;
+    PURCHASED, PROCESSING, SHIPPED, DELIVERED;
 
     public static OrderStatusEnum getNextOrderStatus(OrderStatusEnum currentStatus) {
         int nextOrderStatusIndex = (currentStatus.ordinal() + 1) % OrderStatusEnum.values().length;
@@ -15,7 +15,6 @@ public enum OrderStatusEnum {
             case PROCESSING -> "PROCESSING";
             case SHIPPED -> "SHIPPED";
             case DELIVERED -> "DELIVERED";
-            case CANCELLED -> "CANCELLED";
         };
     }
 }

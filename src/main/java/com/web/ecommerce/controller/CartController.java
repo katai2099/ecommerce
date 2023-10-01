@@ -4,10 +4,7 @@ import com.web.ecommerce.dto.cart.CartItemDTO;
 import com.web.ecommerce.dto.cart.NewCartDTO;
 import com.web.ecommerce.dto.cart.UpdateCartDTO;
 import com.web.ecommerce.exception.InvalidContentException;
-import com.web.ecommerce.model.CheckoutResponse;
-import com.web.ecommerce.model.ConfirmPaymentRequest;
-import com.web.ecommerce.model.NextActionResponse;
-import com.web.ecommerce.model.PlaceOrderRequest;
+import com.web.ecommerce.model.*;
 import com.web.ecommerce.service.CartService;
 import com.web.ecommerce.service.StripeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +47,12 @@ public class CartController {
     public ResponseEntity<List<CartItemDTO>> getCartItems(){
         List<CartItemDTO> items = cartService.getCartItems();
         return new ResponseEntity<>(items,HttpStatus.OK);
+    }
+
+    @PostMapping("/stock-check")
+    public ResponseEntity<List<StockCountCheckResponse>> performStockCheck(){
+        List<StockCountCheckResponse> response = cartService.performStockCountCheck();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/checkout")
