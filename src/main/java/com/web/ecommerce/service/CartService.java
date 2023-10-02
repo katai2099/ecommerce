@@ -231,7 +231,7 @@ public class CartService {
         order.setOrderDate(LocalDateTime.now());
         order.setTotalPrice(total);
         order.setUser(user);
-        OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.PURCHASED.toString())
+        OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.ORDER_PLACED.toString())
                 .orElseThrow(() -> new RuntimeException("Internal Server Error"));
         orderStatus.addOrder(order);
         order.setOrderStatus(orderStatus);

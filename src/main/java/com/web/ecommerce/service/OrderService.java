@@ -48,11 +48,18 @@ public class OrderService {
                 .build();
     }
 
-    public List<OrderDTO> getUserOrders(int page){
+    public PaginationResponse<OrderDTO> getUserOrders(int page){
         Long userId = getUserIdFromSecurityContext();
         Pageable pageable = PageRequest.of(page - 1, 20, Sort.by("orderDate").descending());
-        List<Order> orders = orderRepository.findAllByUserId(userId,pageable);
-        return OrderDTO.toOrderDTOS(orders);
+
+        Page<Order> orderPage = orderRepository.findAllByUserId(userId,pageable);
+        PaginationResponse<OrderDTO> orderDTOPaginationResponse = PaginationResponse.<OrderDTO>builder()
+                .currentPage(page)
+                .totalPage(orderPage.getTotalPages())
+                .totalItem(orderPage.getTotalElements())
+                .data(OrderDTO.toOrderDTOS(orderPage.toList()))
+                .build();
+        return orderDTOPaginationResponse;
     }
 
     @Transactional
