@@ -43,23 +43,21 @@ public class UserService {
 
     @Transactional
     public UserDTO register(SignUpRequest signUpRequest) {
-        byte[] decodedEmailBytes = Base64.getDecoder().decode(signUpRequest.getEmail());
-        String decodedEmail = new String(decodedEmailBytes);
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(signUpRequest.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
-        Optional<User> dbUser = userRepository.findByEmail(decodedEmail);
+        Optional<User> dbUser = userRepository.findByEmail(signUpRequest.getEmail());
         if (dbUser.isPresent()) {
             throw new InvalidContentException("User with email " + signUpRequest.getEmail() + " already existed");
         }
         User user = User.builder()
                 .firstname(signUpRequest.getFirstname())
                 .lastname(signUpRequest.getLastname())
-                .email(decodedEmail)
+                .email(signUpRequest.getEmail())
                 .password(bCryptPasswordEncoder.encode(decodedPassword))
                 .role(Role.ROLE_USER)
                 .build();
         User savedUser = userRepository.save(user);
-        String jwt = jwtService.generateToken(Map.of("username", decodedEmail));
+        String jwt = jwtService.generateToken(Map.of("username", signUpRequest.getEmail()));
         UserDTO userDTO = UserDTO.builder()
                 .firstname(savedUser.getFirstname())
                 .lastname(savedUser.getLastname())
