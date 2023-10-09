@@ -16,4 +16,5 @@ public interface ProductRepository extends JpaRepository<Product,Long>,
     List<Product> findAllByGenderAndCategory(Gender gender, Category category, Pageable pageable);
     List<Product> findAllByGender(Gender gender, Pageable pageable);
     List<Product> findAllByNameContainingIgnoreCaseAndGender(String name,Gender gender,Pageable pageable);
+    List<Product> findAllByIsFeaturedIsTrue();
 }

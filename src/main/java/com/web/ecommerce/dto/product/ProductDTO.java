@@ -15,6 +15,7 @@ public class ProductDTO {
     private String description;
     private double price;
     private boolean publish;
+    private boolean isFeatured;
     private String gender;
     private LocalDateTime createdAt;
     private CategoryDTO category;
@@ -36,6 +37,7 @@ public class ProductDTO {
         dto.setProductSizes(product.getProductSizes().stream().map(ProductSizeDTO::toProductSizeDTO).collect(Collectors.toList()));
         dto.setImages(product.getImages().stream().map(ProductImageDTO::toProductImageDTO).collect(Collectors.toList()));
         dto.setRating(product.getRating());
+        dto.setFeatured(product.isFeatured());
         dto.setTotalReview(product.getReviews()!=null ? product.getReviews().size() : 0);
         return dto;
     }

@@ -2,10 +2,8 @@ package com.web.ecommerce.service;
 
 import com.web.ecommerce.configuration.aws.s3.S3Buckets;
 import com.web.ecommerce.configuration.aws.s3.S3Service;
-import com.web.ecommerce.dto.product.CreateProductRequest;
-import com.web.ecommerce.dto.product.ProductDTO;
-import com.web.ecommerce.dto.product.ProductImageDTO;
-import com.web.ecommerce.dto.product.ProductSizeDTO;
+import com.web.ecommerce.dto.PaginationResponse;
+import com.web.ecommerce.dto.product.*;
 import com.web.ecommerce.enumeration.Gender;
 import com.web.ecommerce.exception.FailUploadImageException;
 import com.web.ecommerce.exception.InvalidContentException;
@@ -16,7 +14,6 @@ import com.web.ecommerce.repository.ProductRepository;
 import com.web.ecommerce.repository.SizeRepository;
 import com.web.ecommerce.specification.ProductFilter;
 import com.web.ecommerce.specification.ProductSpecificationBuilder;
-import com.web.ecommerce.dto.PaginationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -253,4 +250,13 @@ public class ProductService {
         return sizeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
+    public List<ProductDTO> getFeaturedProducts() {
+        List <Product> featuredProducts = productRepository.findAllByIsFeaturedIsTrue();
+        return ProductDTO.toProductDTOs(featuredProducts);
+    }
+
+    public List<CategoryDTO> getTopCategories() {
+        List <Category> topCategories = categoryRepository.findAllByIsTopIsTrue();
+        return CategoryDTO.toCategoryDTOS(topCategories);
+    }
 }

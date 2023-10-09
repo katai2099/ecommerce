@@ -15,4 +15,10 @@ public class Category {
     private Long id;
     @Column(unique = true)
     private String name;
+    @Column(columnDefinition = "boolean default false")
+    private boolean isTop;
+    @Column(columnDefinition = "boolean default true")
+    private boolean publish;
+    private String categoryImage;
+
 }

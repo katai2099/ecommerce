@@ -111,5 +111,17 @@ public class ProductController {
         return ResponseEntity.ok("Successfully submitted");
     }
 
+    @GetMapping("/featured-products")
+    public ResponseEntity<List<ProductDTO>> getFeaturedProducts(){
+        List<ProductDTO> res = productService.getFeaturedProducts();
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/top-categories")
+    public ResponseEntity<List<CategoryDTO>> getTopCategories(){
+        List<CategoryDTO> res = productService.getTopCategories();
+        return ResponseEntity.ok(res);
+    }
+
 
 }
