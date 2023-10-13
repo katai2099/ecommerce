@@ -73,12 +73,15 @@ public class ProductService {
             String sort = filter.getSort().toUpperCase();
             switch (sort) {
                 case HIGHEST_PRICE -> {
+                    filter.setStock(DEFAULT);
                     return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").descending());
                 }
                 case LOWEST_PRICE -> {
+                    filter.setStock(DEFAULT);
                     return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").ascending());
                 }
                 case NEWEST -> {
+                    filter.setStock(DEFAULT);
                     return PageRequest.of(filter.getPage() - 1, 20, Sort.by("createdAt").descending());
                 }
                 case DEFAULT -> {

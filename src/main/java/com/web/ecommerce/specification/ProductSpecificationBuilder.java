@@ -96,7 +96,7 @@ public class ProductSpecificationBuilder {
                 case DEFAULT -> {
                     List<SearchOperation> joinOperations = List.of(SearchOperation.GREATER_THAN);
                     List<Object> joinValues = List.of(1);
-                    SearchCriteria lowStockSearchCriteria = SearchCriteria.builder()
+                    SearchCriteria defaultSearchCriteria = SearchCriteria.builder()
                             .key("stockCount")
                             .operation("join")
                             .value(0)
@@ -106,7 +106,7 @@ public class ProductSpecificationBuilder {
                             .joinOperations(joinOperations)
                             .joinValues(joinValues)
                             .build();
-                    params.add(lowStockSearchCriteria);
+                    params.add(defaultSearchCriteria);
                 }
             }
         }
