@@ -2,7 +2,6 @@ package com.web.ecommerce.service;
 
 import com.web.ecommerce.dto.PaginationResponse;
 import com.web.ecommerce.dto.product.NewReview;
-import com.web.ecommerce.dto.product.ProductReviewDTO;
 import com.web.ecommerce.dto.product.ReviewDTO;
 import com.web.ecommerce.exception.ResourceNotFoundException;
 import com.web.ecommerce.model.product.Product;
@@ -37,31 +36,32 @@ public class ReviewService {
     }
 
     @Transactional
-    public ProductReviewDTO getReviews(Long productId, Integer page) {
-        Pageable pageable;
-        ProductReviewDTO dto = new ProductReviewDTO();
+    public ReviewDTO getUserReview(Long productId) {
         Long userId = getUserIdFromSecurityContext();
-        if (page == 1 && userId != -1) {
-            Optional<Review> ownerReview = reviewRepository.findByProductIdAndUserId(productId, userId);
-            dto.setOwnerReview(ownerReview.map(ReviewDTO::toReviewDTO).orElse(null));
-            pageable = PageRequest.of(0, 5, Sort.by("reviewDate").descending());
-        } else {
-            dto.setOwnerReview(null);
-            pageable = PageRequest.of(page - 1, 5, Sort.by("reviewDate").descending());
+        if (userId == -1) {
+            throw new ResourceNotFoundException("No user review");
         }
-        Page<Review> reviewList = reviewRepository.findByProductIdAndUserIdNot(productId,  userId, pageable);
+        Review ownerReview = reviewRepository.findByProductIdAndUserId(productId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("No user review"));
+        return ReviewDTO.toReviewDTO(ownerReview);
+    }
+
+    @Transactional
+    public PaginationResponse<ReviewDTO> getReviews(Long productId, Integer page) {
+        Long userId = getUserIdFromSecurityContext();
+        Pageable pageable = PageRequest.of(page - 1, 5, Sort.by("reviewDate").descending());
+        Page<Review> reviewList = reviewRepository.findByProductIdAndUserIdNot(productId, userId, pageable);
         PaginationResponse<ReviewDTO> otherReviews = PaginationResponse.<ReviewDTO>builder()
                 .currentPage(page)
                 .totalPage(reviewList.getTotalPages())
                 .totalItem(reviewList.getTotalElements())
                 .data(ReviewDTO.toReviewDTOs(reviewList.toList()))
                 .build();
-        dto.setOthersReview(otherReviews);
-        return dto;
+        return otherReviews;
     }
 
     @Transactional
-    public void saveReview(Long productId, NewReview review) {
+    public Long saveReview(Long productId, NewReview review) {
         Long userId = getUserIdFromSecurityContext();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
@@ -77,17 +77,17 @@ public class ReviewService {
             existingReview.setUpdatedDate(LocalDateTime.now());
             reviewToSave = existingReview;
         } else {
-        reviewToSave = Review.builder()
-                .rating(review.getRating())
-                .title(review.getTitle())
-                .review(review.getReview())
-                .reviewDate(LocalDateTime.now())
-                .updatedDate(LocalDateTime.now())
-                .user(user)
-                .product(product)
-                .build();
+            reviewToSave = Review.builder()
+                    .rating(review.getRating())
+                    .title(review.getTitle())
+                    .review(review.getReview())
+                    .reviewDate(LocalDateTime.now())
+                    .updatedDate(LocalDateTime.now())
+                    .user(user)
+                    .product(product)
+                    .build();
         }
-        reviewRepository.save(reviewToSave);
+        Review updatedReview = reviewRepository.save(reviewToSave);
         List<Review> productReviews = product.getReviews();
         double totalReviews = productReviews.size();
         double totalRating = productReviews.stream()
@@ -96,5 +96,10 @@ public class ReviewService {
         double averageRating = totalReviews > 0 ? totalRating / totalReviews : 0.0;
         product.setRating(averageRating);
         productRepository.save(product);
+        return updatedReview.getId();
+    }
+
+    public void deleteReview(Long reviewId) {
+        reviewRepository.deleteById(reviewId);
     }
 }

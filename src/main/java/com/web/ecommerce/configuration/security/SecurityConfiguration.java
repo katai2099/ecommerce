@@ -45,6 +45,8 @@ public class SecurityConfiguration {
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,"/api/products/**")
                         .permitAll()
+                        .requestMatchers(HttpMethod.DELETE,"/api/products/user-review/**")
+                        .hasRole("USER")
                         .requestMatchers( HttpMethod.DELETE,"/api/products/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,"/api/products/**")

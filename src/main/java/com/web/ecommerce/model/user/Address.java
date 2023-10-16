@@ -31,6 +31,8 @@ public class Address {
     private String zipCode;
     @Column(columnDefinition = "boolean default false")
     private boolean isDefault;
+    @Column(columnDefinition = "boolean default true")
+    private boolean isActive;
 
 
     @ManyToOne

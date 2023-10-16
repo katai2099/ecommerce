@@ -158,22 +158,22 @@ public class UserService {
         Long userId = getUserIdFromSecurityContext();
         Optional<Address> optionalDeleteAddress = addressRepository.findById(addressId);
         if(optionalDeleteAddress.isPresent()){
-            Address deleteAddress = optionalDeleteAddress.get();
-            if(deleteAddress.isDefault()){
-                addressRepository.delete(deleteAddress);
-               addressRepository.findFirstByUserIdOrderByIdAsc(userId).ifPresent((minimumIdAddress)->{
-                   minimumIdAddress.setDefault(true);
-                   addressRepository.save(minimumIdAddress);
-               });
-            }else{
-                addressRepository.delete(deleteAddress);
+            Address inactiveAddress = optionalDeleteAddress.get();
+            inactiveAddress.setActive(false);
+            if(inactiveAddress.isDefault()) {
+                inactiveAddress.setDefault(false);
+                addressRepository.findFirstByUserIdAndIdNotOrderByIdAsc(userId,addressId).ifPresent((minimumIdAddress) -> {
+                    minimumIdAddress.setDefault(true);
+                    addressRepository.save(minimumIdAddress);
+                });
             }
+            addressRepository.save(inactiveAddress);
         }
     }
 
     public List<AddressDTO> getAddresses() {
         Long userId = getUserIdFromSecurityContext();
-        List<Address> addresses = addressRepository.findAllByUserId(userId, Sort.by("isDefault").descending());
+        List<Address> addresses = addressRepository.findAllByUserIdAndIsActiveIsTrue(userId, Sort.by("isDefault").descending());
         return AddressDTO.addressDTOS(addresses);
     }
 

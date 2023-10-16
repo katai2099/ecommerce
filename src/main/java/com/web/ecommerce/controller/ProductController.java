@@ -98,27 +98,39 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}/reviews")
-    public ResponseEntity<ProductReviewDTO> getReviews(@PathVariable Long productId,
-                                                       @RequestParam(required = false, defaultValue = "1") Integer page) {
-        ProductReviewDTO productReviewDTO = reviewService.getReviews(productId, page);
-        return ResponseEntity.ok(productReviewDTO);
+    public ResponseEntity<PaginationResponse<ReviewDTO>> getReviews(@PathVariable Long productId,
+                                                                    @RequestParam(required = false, defaultValue = "1") Integer page) {
+        PaginationResponse<ReviewDTO> response = reviewService.getReviews(productId, page);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{productId}/user-review")
+    public ResponseEntity<ReviewDTO> getUserReview(@PathVariable Long productId) {
+        ReviewDTO reviewDTO = reviewService.getUserReview(productId);
+        return ResponseEntity.ok(reviewDTO);
+    }
+
+    @DeleteMapping("/user-review/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long reviewId) {
+        reviewService.deleteReview(reviewId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{productId}/reviews")
     public ResponseEntity<String> submitReview(@PathVariable Long productId,
                                                @RequestBody NewReview newReview) {
-        reviewService.saveReview(productId, newReview);
-        return ResponseEntity.ok("Successfully submitted");
+        Long id = reviewService.saveReview(productId, newReview);
+        return ResponseEntity.ok(id.toString());
     }
 
     @GetMapping("/featured-products")
-    public ResponseEntity<List<ProductDTO>> getFeaturedProducts(){
+    public ResponseEntity<List<ProductDTO>> getFeaturedProducts() {
         List<ProductDTO> res = productService.getFeaturedProducts();
         return ResponseEntity.ok(res);
     }
 
     @GetMapping("/top-categories")
-    public ResponseEntity<List<CategoryDTO>> getTopCategories(){
+    public ResponseEntity<List<CategoryDTO>> getTopCategories() {
         List<CategoryDTO> res = productService.getTopCategories();
         return ResponseEntity.ok(res);
     }
