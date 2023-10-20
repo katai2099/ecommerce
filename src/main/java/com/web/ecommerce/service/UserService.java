@@ -244,10 +244,7 @@ public class UserService {
 
     @Transactional
     public String resetPassword(NewPasswordRequest passwordRequest,String token) {
-        String valid = passwordResetTokenService.validatePasswordResetToken(token);
-        if(!valid.equalsIgnoreCase("valid")){
-            throw new InvalidContentException("Bad request");
-        }
+        passwordResetTokenService.validatePasswordResetToken(token);
         User user = userRepository.findUserByPasswordResetToken(token).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(passwordRequest.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
