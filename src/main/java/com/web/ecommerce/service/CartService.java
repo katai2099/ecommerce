@@ -31,6 +31,7 @@ import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final CartItemService cartItemService;
     private final ProductSizeRepository productSizeRepository;
     private final UserRepository userRepository;
     private final OrderStatusRepository orderStatusRepository;
@@ -42,12 +43,13 @@ public class CartService {
     @Autowired
     public CartService(CartRepository cartRepository,
                        CartItemRepository cartItemRepository,
-                       ProductSizeRepository productSizeRepository,
+                       CartItemService cartItemService, ProductSizeRepository productSizeRepository,
                        UserRepository userRepository,
                        OrderStatusRepository orderStatusRepository,
                        OrderRepository orderRepository, AddressRepository addressRepository, StripeService stripeService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.cartItemService = cartItemService;
         this.productSizeRepository = productSizeRepository;
         this.userRepository = userRepository;
         this.orderStatusRepository = orderStatusRepository;
@@ -56,9 +58,14 @@ public class CartService {
         this.stripeService = stripeService;
     }
 
-    public List<CartItemDTO> getCartItems() {
+    public List<CartItemDTO> getCartItems(String deviceId) {
         Long userId = getUserIdFromSecurityContext();
-        Optional<Cart> dbCart = cartRepository.findCartByUserId(userId);
+        Optional<Cart> dbCart;
+        if(userId!=-1){
+            dbCart = cartRepository.findCartByUserId(userId);
+        }else{
+            dbCart = cartRepository.findCartByDeviceId(deviceId);
+        }
         if (dbCart.isEmpty()) {
             return new LinkedList<>();
         } else {
@@ -68,7 +75,7 @@ public class CartService {
     }
 
     @Transactional
-    public Long addToCart(NewCartDTO newCartItem) {
+    public Long addToCart(NewCartDTO newCartItem,String deviceId) {
         Long userId = getUserIdFromSecurityContext();
         ProductSize productSize = productSizeRepository.
                 findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
@@ -76,14 +83,24 @@ public class CartService {
         if (productSize.getStockCount() == 0) {
             throw new InvalidContentException("Product out of stock");
         }
-        Cart currentCart = cartRepository.findCartByUserId(userId)
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    User user = new User();
-                    user.setId(userId);
-                    newCart.setUser(user);
-                    return cartRepository.save(newCart);
-                });
+        Cart currentCart;
+        if(userId!=-1){
+            currentCart = cartRepository.findCartByUserId(userId)
+                    .orElseGet(() -> {
+                        Cart newCart = new Cart();
+                        User user = new User();
+                        user.setId(userId);
+                        newCart.setUser(user);
+                        return cartRepository.save(newCart);
+                    });
+        }else{
+            currentCart = cartRepository.findCartByDeviceId(deviceId)
+                    .orElseGet(()->{
+                        Cart newCart = new Cart();
+                        newCart.setDeviceId(deviceId);
+                        return cartRepository.save(newCart);
+                    });
+        }
         CartItem existingCartItem = currentCart
                 .getCartItems()
                 .stream()
@@ -102,7 +119,7 @@ public class CartService {
             cartItem.setQuantity(1);
             cartItem.setProductSize(productSize);
             cartItem.setCart(currentCart);
-            currentCart.getCartItems().add(cartItem);
+            currentCart.addToCart(cartItem);
             CartItem savedCartItem = cartItemRepository.save(cartItem);
             return savedCartItem.getId();
         }
@@ -267,5 +284,28 @@ public class CartService {
             return false;
         }
         return true;
+    }
+
+    public void mergeCart(Long userId,String deviceId) {
+        Optional<Cart> optionalCart = cartRepository.findCartByDeviceId(deviceId);
+        if(optionalCart.isEmpty()){
+            return;
+        }
+        Cart deviceCart = optionalCart.get();
+        if(deviceCart.getCartItems().isEmpty()){
+            return;
+        }
+        Cart userCart = cartRepository.findCartByUserId(userId)
+                .orElseGet(()->{
+                    Cart newCart = new Cart();
+                    User user = new User();
+                    user.setId(userId);
+                    newCart.setUser(user);
+                    return cartRepository.save(newCart);
+                });
+        userCart.clearCart();
+        cartRepository.save(userCart);
+        deviceCart.getCartItems().forEach(userCart::addToCart);
+        cartRepository.save(userCart);
     }
 }

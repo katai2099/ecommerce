@@ -31,7 +31,6 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -57,6 +56,12 @@ public class SecurityConfiguration {
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,"/api/products/*/reviews")
                         .permitAll()
+                        .requestMatchers(HttpMethod.PUT,"/api/carts/{id}")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/carts/add-to-cart")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/carts")
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .sessionManagement(session -> session
@@ -69,10 +74,10 @@ public class SecurityConfiguration {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://127.0.0.1:3000","http://89.134.215.228:3000","*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://127.0.0.1:3000","http://89.134.215.228:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
-//        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type","Cookie"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

@@ -24,14 +24,16 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> register(@RequestBody SignUpRequest user) {
-        UserDTO dto = userService.register(user);
+    public ResponseEntity<UserDTO> register(@RequestBody SignUpRequest user,
+                                            @CookieValue(value = "deviceId") String deviceId) {
+        UserDTO dto = userService.register(user,deviceId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody SignInRequest signInRequest) {
-        UserDTO dto = userService.login(signInRequest);
+    public ResponseEntity<UserDTO> login(@RequestBody SignInRequest signInRequest,
+                                         @CookieValue(value = "deviceId") String deviceId) {
+        UserDTO dto = userService.login(signInRequest,deviceId);
         return ResponseEntity.ok(dto);
     }
 

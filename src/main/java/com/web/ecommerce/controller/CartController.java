@@ -28,8 +28,9 @@ public class CartController {
     }
 
     @PostMapping("/add-to-cart")
-    public ResponseEntity<Long> addToCart(@RequestBody NewCartDTO cartItem){
-        Long cartItemId = cartService.addToCart(cartItem);
+    public ResponseEntity<Long> addToCart(@RequestBody NewCartDTO cartItem,
+                                          @CookieValue(value = "deviceId") String deviceId){
+        Long cartItemId = cartService.addToCart(cartItem,deviceId);
         return new ResponseEntity<>(cartItemId, HttpStatus.OK);
     }
 
@@ -44,8 +45,8 @@ public class CartController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<CartItemDTO>> getCartItems(){
-        List<CartItemDTO> items = cartService.getCartItems();
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@CookieValue(value = "deviceId") String deviceId){
+        List<CartItemDTO> items = cartService.getCartItems(deviceId);
         return new ResponseEntity<>(items,HttpStatus.OK);
     }
 

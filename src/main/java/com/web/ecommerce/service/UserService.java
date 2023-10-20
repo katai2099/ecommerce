@@ -28,6 +28,7 @@ import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 public class UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final CartService cartService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtService jwtService;
     private final PasswordResetTokenService passwordResetTokenService;
@@ -36,9 +37,10 @@ public class UserService {
     @Autowired
     public UserService(UserRepository userRepository,
                        AddressRepository addressRepository,
-                       BCryptPasswordEncoder bCryptPasswordEncoder, JwtService jwtService, PasswordResetTokenService passwordResetTokenService, MailSenderService mailSenderService) {
+                       CartService cartService, BCryptPasswordEncoder bCryptPasswordEncoder, JwtService jwtService, PasswordResetTokenService passwordResetTokenService, MailSenderService mailSenderService) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
+        this.cartService = cartService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.jwtService = jwtService;
         this.passwordResetTokenService = passwordResetTokenService;
@@ -46,7 +48,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO register(SignUpRequest signUpRequest) {
+    public UserDTO register(SignUpRequest signUpRequest, String deviceId) {
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(signUpRequest.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
         Optional<User> dbUser = userRepository.findByEmail(signUpRequest.getEmail());
@@ -69,30 +71,31 @@ public class UserService {
                 .role(savedUser.getRole().name())
                 .token(jwt)
                 .build();
+        cartService.mergeCart(user.getId(),deviceId);
         return userDTO;
     }
 
     @Transactional
-    public UserDTO login(SignInRequest signInRequest) {
+    public UserDTO login(SignInRequest signInRequest, String deviceId) {
         byte[] decodedEmailBytes = Base64.getDecoder().decode(signInRequest.getEmail());
         String decodedEmail = new String(decodedEmailBytes);
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(signInRequest.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
         User user = userRepository.findByEmail(decodedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials."));
-        if (bCryptPasswordEncoder.matches(decodedPassword, user.getPassword())) {
-            String jwt = jwtService.generateToken(Map.of("username", decodedEmail));
-            UserDTO userDTO = UserDTO.builder()
-                    .firstname(user.getFirstname())
-                    .lastname(user.getLastname())
-                    .email(user.getEmail())
-                    .role(user.getRole().name())
-                    .token(jwt)
-                    .build();
-            return userDTO;
-        } else {
+        if (!bCryptPasswordEncoder.matches(decodedPassword, user.getPassword())) {
             throw new BadCredentialsException("Bad credentials.");
         }
+        String jwt = jwtService.generateToken(Map.of("username", decodedEmail));
+        UserDTO userDTO = UserDTO.builder()
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .token(jwt)
+                .build();
+        cartService.mergeCart(user.getId(),deviceId);
+        return userDTO;
     }
 
     @Transactional
@@ -243,7 +246,7 @@ public class UserService {
     }
 
     @Transactional
-    public String resetPassword(NewPasswordRequest passwordRequest,String token) {
+    public String resetPassword(NewPasswordRequest passwordRequest, String token) {
         passwordResetTokenService.validatePasswordResetToken(token);
         User user = userRepository.findUserByPasswordResetToken(token).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(passwordRequest.getPassword());
