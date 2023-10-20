@@ -51,6 +51,10 @@ public class User {
     @JsonManagedReference(value = "user-stripe-customer")
     private StripeCustomer customer;
 
+    @OneToOne(mappedBy = "user")
+    @JsonManagedReference(value = "user-reset-password-token")
+    private PasswordResetToken resetPasswordToken;
+
     public void addOrder(Order order){
         orders.add(order);
     }

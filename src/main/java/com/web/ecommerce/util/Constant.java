@@ -13,4 +13,6 @@ public class Constant {
     public static final String HIGHEST_PRICE = "HIGHESTPRICE";
     public static final String LOWEST_PRICE = "LOWESTPRICE";
     public static final String NEWEST = "NEWEST";
+    public static final String WEBSITE_URL = "http://localhost.com:3000";
+    public static final int TOKEN_EXPIRATION_TIME = 30;
 }
