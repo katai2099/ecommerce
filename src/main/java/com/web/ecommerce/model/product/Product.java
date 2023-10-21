@@ -39,12 +39,12 @@ public class Product {
     @JoinColumn(name = "category_id",referencedColumnName = "id")
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     @JsonManagedReference("product-sizes")
     @Builder.Default
     private List<ProductSize> productSizes = new LinkedList<>();
 
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     @JsonManagedReference("product-images")
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
@@ -53,6 +53,9 @@ public class Product {
     @JsonManagedReference(value = "product-reviews")
     private List<Review> reviews = new ArrayList<>();
 
-
+    public void removeImage(ProductImage image){
+        image.setProduct(null);
+        this.images.remove(image);
+    }
 
 }

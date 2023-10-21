@@ -94,7 +94,9 @@ public class UserService {
                 .role(user.getRole().name())
                 .token(jwt)
                 .build();
-        cartService.mergeCart(user.getId(),deviceId);
+        if(user.getRole()!=Role.ROLE_ADMIN){
+            cartService.mergeCart(user.getId(),deviceId);
+        }
         return userDTO;
     }
 

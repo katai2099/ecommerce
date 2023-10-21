@@ -108,7 +108,6 @@ public class ProductService {
 
     @Transactional
     public ProductDTO addNewProduct(CreateProductRequest createProductRequest, List<MultipartFile> files) {
-
         Category category = categoryRepository.findById(createProductRequest.getCategory().getId())
                 .orElseThrow(() -> new InvalidContentException("The provided category does not exist. Please provide a valid category."));
         Product newProduct = Product.builder()
@@ -116,6 +115,8 @@ public class ProductService {
                 .description(createProductRequest.getDescription())
                 .gender(Gender.valueOf(createProductRequest.getGender()))
                 .price(createProductRequest.getPrice())
+                .publish(createProductRequest.getPublish())
+                .isFeatured(createProductRequest.getFeatured())
                 .category(category)
                 .build();
         List<ProductSize> productSizes = new ArrayList<>();
@@ -133,7 +134,6 @@ public class ProductService {
         }
         Collections.sort(productSizes);
         newProduct.setProductSizes(productSizes);
-
         List<String> urls = uploadProductImages(files, newProduct);
         createProductImages(urls, newProduct);
         Product prod = productRepository.save(newProduct);
@@ -167,32 +167,37 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateProduct(CreateProductRequest dto, List<MultipartFile> files) {
-        Product product = productRepository.findById(dto.getId())
-                .orElseThrow(() -> new InvalidContentException("Product with id " + dto.getId() + " does not exist"));
+    public ProductDTO updateProduct(CreateProductRequest productRequest, List<MultipartFile> files) {
+        Product product = productRepository.findById(productRequest.getId())
+                .orElseThrow(() -> new InvalidContentException("Product with id " + productRequest.getId() + " does not exist"));
 
-        if (dto.getName() != null && !dto.getName().isEmpty()) {
-            product.setName(dto.getName());
+        if (productRequest.getName() != null && !productRequest.getName().isEmpty()) {
+            product.setName(productRequest.getName());
         }
-        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
-            product.setDescription(dto.getDescription());
+        if (productRequest.getDescription() != null && !productRequest.getDescription().isEmpty()) {
+            product.setDescription(productRequest.getDescription());
         }
-        if (!Objects.equals(dto.getCategory().getId(), product.getCategory().getId())) {
-            Category category = categoryRepository.findById(dto.getCategory().getId())
+        if (!Objects.equals(productRequest.getCategory().getId(), product.getCategory().getId())) {
+            Category category = categoryRepository.findById(productRequest.getCategory().getId())
                     .orElseThrow(() -> new InvalidContentException("The provided category does not exist. Please provide a valid category."));
             product.setCategory(category);
         }
-        if (dto.getGender() != null) {
-            product.setGender(Gender.valueOf(dto.getGender()));
+        if (productRequest.getGender() != null) {
+            product.setGender(Gender.valueOf(productRequest.getGender()));
         }
-        product.setPrice(dto.getPrice());
-        Set<Long> updatedSizeIds = dto.getProductSizes().stream()
+        if (productRequest.getFeatured() != null) {
+            product.setFeatured(productRequest.getFeatured());
+        }
+        if (productRequest.getPublish() != null) {
+            product.setPublish(productRequest.getPublish());
+        }
+        product.setPrice(productRequest.getPrice());
+        Set<Long> updatedSizeIds = productRequest.getProductSizes().stream()
                 .map(ProductSizeDTO::getId)
-                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         product.getProductSizes().removeIf(size -> !updatedSizeIds.contains(size.getId()));
-        for (ProductSizeDTO productSizeDto : dto.getProductSizes()) {
-            if (productSizeDto.getId() == null) {
+        for (ProductSizeDTO productSizeDto : productRequest.getProductSizes()) {
+            if (productSizeDto.getId() == null || productSizeDto.getId() == 0) {
                 Size size = sizeRepository.findByName(productSizeDto.getSize().getName())
                         .orElseThrow(() -> new InvalidContentException("The provided size does not exist. Please provide a valid size."));
                 ProductSize productSize = ProductSize.builder()
@@ -209,20 +214,38 @@ public class ProductService {
                 existingSize.setStockCount(productSizeDto.getStockCount());
             }
         }
-
-        Set<String> updatedImages = dto.getImages().stream()
+        Set<String> updatedImages = productRequest.getImages().stream()
                 .map(ProductImageDTO::getImageUrl)
-                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        product.getImages().forEach((img) -> {
+        for (int i = 0; i < product.getImages().size(); i++) {
+            ProductImage img = product.getImages().get(i);
             if (!updatedImages.contains(img.getImageUrl())) {
-                String key = img.getImageUrl().substring(img.getImageUrl().indexOf(".com") + 5);
-                s3Service.deleteObject(key);
-                product.getImages().remove(img);
+//                String key = img.getImageUrl().substring(img.getImageUrl().indexOf(".com") + 5);
+//                s3Service.deleteObject(key);
+                product.removeImage(img);
             }
-        });
-        List<String> urls = uploadProductImages(files, product);
-        createProductImages(urls, product);
+        }
+        if (files != null) {
+            List<String> urls = uploadProductImages(files, product);
+            createProductImages(urls, product);
+        }
+        Product prod = productRepository.save(product);
+        return ProductDTO.toProductDTO(prod);
+    }
+
+    @Transactional
+    public void setProductFeatured(Long id,Boolean featured){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Product not found"));
+        product.setFeatured(featured);
+        productRepository.save(product);
+    }
+
+    @Transactional
+    public void setProductPublish(Long id,Boolean publish){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Product not found"));
+        product.setPublish(publish);
         productRepository.save(product);
     }
 
@@ -254,12 +277,12 @@ public class ProductService {
     }
 
     public List<ProductDTO> getFeaturedProducts() {
-        List <Product> featuredProducts = productRepository.findAllByIsFeaturedIsTrue();
+        List<Product> featuredProducts = productRepository.findAllByIsFeaturedIsTrue();
         return ProductDTO.toProductDTOs(featuredProducts);
     }
 
     public List<CategoryDTO> getTopCategories() {
-        List <Category> topCategories = categoryRepository.findAllByIsTopIsTrue();
+        List<Category> topCategories = categoryRepository.findAllByIsTopIsTrue();
         return CategoryDTO.toCategoryDTOS(topCategories);
     }
 }

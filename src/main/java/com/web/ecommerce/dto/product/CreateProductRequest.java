@@ -15,6 +15,8 @@ public class CreateProductRequest {
     private double price;
     private CategoryDTO category;
     private String gender;
+    private Boolean featured;
+    private Boolean publish;
     private List<ProductSizeDTO> productSizes = new ArrayList<>();
     private List<ProductImageDTO> images = new ArrayList<>();
 }

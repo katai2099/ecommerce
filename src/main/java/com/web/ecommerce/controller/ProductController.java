@@ -3,6 +3,7 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.PaginationResponse;
 import com.web.ecommerce.dto.product.*;
 import com.web.ecommerce.exception.InvalidContentException;
+import com.web.ecommerce.model.ProductAttributeRequest;
 import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
@@ -81,14 +82,28 @@ public class ProductController {
     }
 
     @PutMapping(value = "/{productId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> updateProduct(@PathVariable Long productId,
-                                                @RequestPart CreateProductRequest productData,
-                                                @RequestPart(required = false, name = "files[]") List<MultipartFile> files) {
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long productId,
+                                                    @RequestPart CreateProductRequest productData,
+                                                    @RequestPart(required = false) List<MultipartFile> files) {
         if (!productId.equals(productData.getId())) {
             throw new InvalidContentException("Product ID mismatch");
         }
-        productService.updateProduct(productData, files);
-        return ResponseEntity.ok("Product updated successfully.");
+        ProductDTO product = productService.updateProduct(productData, files);
+        return ResponseEntity.ok(product);
+    }
+
+    @PutMapping(value = "/{productId}/featured")
+    public ResponseEntity<String> setProductFeatured(@PathVariable Long productId,
+                                                     @RequestBody ProductAttributeRequest.ProductFeaturedRequest request) {
+        productService.setProductFeatured(productId, request.getFeatured());
+        return ResponseEntity.ok("Product successfully updated");
+    }
+
+    @PutMapping(value = "/{productId}/publish")
+    public ResponseEntity<String> setProductPublish(@PathVariable Long productId,
+                                                    @RequestBody ProductAttributeRequest.ProductPublishRequest request) {
+        productService.setProductPublish(productId, request.getPublish());
+        return ResponseEntity.ok("Product successfully updated");
     }
 
     @DeleteMapping("/{productId}")
