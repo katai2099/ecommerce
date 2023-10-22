@@ -32,15 +32,41 @@ public class ProductController {
         this.reviewService = reviewService;
     }
 
-    @PostMapping("/category/")
-    public ResponseEntity<String> addNewCategory(@RequestBody Category category) {
-        productService.addNewCategory(category);
-        return new ResponseEntity<>("Category created", HttpStatus.CREATED);
+    @PostMapping(value = "/category", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<CategoryDTO> addNewCategory(@RequestPart(name = "categoryData") Category category,
+                                                      @RequestPart List<MultipartFile> files) {
+        CategoryDTO categoryDTO = productService.addNewCategory(category, files);
+        return ResponseEntity.ok(categoryDTO);
+    }
+
+    @PutMapping(value = "/category/{categoryId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long categoryId,
+                                                      @RequestPart(name = "categoryData") Category category,
+                                                      @RequestPart(required = false) List<MultipartFile> files) {
+        if (!categoryId.equals(category.getId())) {
+            throw new InvalidContentException("Product ID mismatch");
+        }
+        CategoryDTO categoryDTO = productService.updateCategory(category, files);
+        return ResponseEntity.ok(categoryDTO);
+    }
+
+    @PutMapping(value = "/category/{categoryId}/top-category")
+    public ResponseEntity<String> setTopCategory(@PathVariable Long categoryId,
+                                                     @RequestBody ProductAttributeRequest.CategoryIsTopRequest request) {
+        productService.setProductTop(categoryId, request.getIsTop());
+        return ResponseEntity.ok("Category successfully updated");
+    }
+
+    @PutMapping(value = "/category/{categoryId}/publish")
+    public ResponseEntity<String> setCategoryPublish(@PathVariable Long categoryId,
+                                                    @RequestBody ProductAttributeRequest.ProductPublishRequest request) {
+        productService.setCategoryPublish(categoryId, request.getPublish());
+        return ResponseEntity.ok("Category successfully updated");
     }
 
     @GetMapping("/category/")
-    public ResponseEntity<List<Category>> getCategories() {
-        return new ResponseEntity<>(productService.getCategories(), HttpStatus.OK);
+    public ResponseEntity<List<CategoryDTO>> getCategories() {
+        return ResponseEntity.ok(productService.getCategories());
     }
 
     @PostMapping("/size/")

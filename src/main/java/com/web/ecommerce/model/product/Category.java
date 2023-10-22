@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -16,9 +18,12 @@ public class Category {
     @Column(unique = true)
     private String name;
     @Column(columnDefinition = "boolean default false")
-    private boolean isTop;
+    private Boolean isTop;
     @Column(columnDefinition = "boolean default true")
-    private boolean publish;
+    private Boolean publish;
+    @Column(columnDefinition = "timestamp default current_timestamp")
+    private LocalDateTime lastModified = LocalDateTime.now();
+
     private String categoryImage;
 
 }

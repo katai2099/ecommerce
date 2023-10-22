@@ -15,4 +15,10 @@ public class ProductAttributeRequest {
         private Boolean publish;
     }
 
+    @Getter
+    @Setter
+    public static class CategoryIsTopRequest{
+        private Boolean isTop;
+    }
+
 }

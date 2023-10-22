@@ -140,6 +140,34 @@ public class ProductService {
         return ProductDTO.toProductDTO(prod);
     }
 
+    @Transactional
+    public CategoryDTO updateCategory(Category categoryRequest, List<MultipartFile> files) {
+        if(files==null && categoryRequest.getCategoryImage().isEmpty()){
+            throw new InvalidContentException("Category need at least one image");
+        }
+        Category category = categoryRepository.findById(categoryRequest.getId())
+                .orElseThrow(()->new ResourceNotFoundException("Category with id " + categoryRequest.getId() + " does not exist"));
+        if(categoryRequest.getName()!=null && !categoryRequest.getName().isEmpty()){
+            category.setName(categoryRequest.getName());
+        }
+        if(categoryRequest.getIsTop() !=null){
+            category.setIsTop(categoryRequest.getIsTop());
+        }
+        if(categoryRequest.getPublish()!=null){
+            category.setPublish(categoryRequest.getPublish());
+        }
+        category.setLastModified(LocalDateTime.now());
+        if(categoryRequest.getCategoryImage().isEmpty()){
+            category.setCategoryImage("");
+        }
+        if (files != null) {
+            List<String> urls = uploadCategoryImage(files, category);
+            createCategoryImage(urls, category);
+        }
+        Category savedCategory = categoryRepository.save(category);
+        return CategoryDTO.toCategoryDTO(savedCategory);
+    }
+
     private void createProductImages(List<String> urls, Product product) {
         for (String url : urls) {
             ProductImage image = ProductImage.builder()
@@ -148,6 +176,28 @@ public class ProductService {
                     .build();
             product.getImages().add(image);
         }
+    }
+
+    private void createCategoryImage(List<String> urls,Category category){
+        for(String url:urls){
+            category.setCategoryImage(url);
+        }
+    }
+
+    private List<String> uploadCategoryImage(List<MultipartFile> files,Category category){
+        List<String> urls = new ArrayList<>();
+        for(int i=0;i<files.size();i++){
+            try {
+                String key = "categories/%s_%s_%s".formatted(LocalDateTime.now().toString(), i + 1, category.getName());
+                s3Service.putObject("%s".formatted(key),
+                        files.get(i).getBytes());
+                String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
+                urls.add("https://%s.s3.eu-north-1.amazonaws.com/%s".formatted(s3Buckets.getCustomer(), encodedKey));
+            } catch (IOException e) {
+                throw new FailUploadImageException();
+            }
+        }
+        return urls;
     }
 
     private List<String> uploadProductImages(List<MultipartFile> files, Product product) {
@@ -169,7 +219,7 @@ public class ProductService {
     @Transactional
     public ProductDTO updateProduct(CreateProductRequest productRequest, List<MultipartFile> files) {
         Product product = productRepository.findById(productRequest.getId())
-                .orElseThrow(() -> new InvalidContentException("Product with id " + productRequest.getId() + " does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + productRequest.getId() + " does not exist"));
 
         if (productRequest.getName() != null && !productRequest.getName().isEmpty()) {
             product.setName(productRequest.getName());
@@ -255,13 +305,22 @@ public class ProductService {
     }
 
     @Transactional
-    public void addNewCategory(Category category) {
-        categoryRepository.save(category);
+    public CategoryDTO addNewCategory(Category categoryData,List<MultipartFile> files) {
+        Category category = new Category();
+        category.setName(categoryData.getName());
+        category.setIsTop(categoryData.getIsTop());
+        category.setPublish(categoryData.getPublish());
+        category.setLastModified(LocalDateTime.now());
+        List<String> urls = uploadCategoryImage(files,category);
+        createCategoryImage(urls,category);
+        Category savedCategory = categoryRepository.save(category);
+        return CategoryDTO.toCategoryDTO(savedCategory);
     }
 
     @Transactional
-    public List<Category> getCategories() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<CategoryDTO> getCategories() {
+        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        return CategoryDTO.toCategoryDTOS(categories);
     }
 
     @Transactional
@@ -284,5 +343,21 @@ public class ProductService {
     public List<CategoryDTO> getTopCategories() {
         List<Category> topCategories = categoryRepository.findAllByIsTopIsTrue();
         return CategoryDTO.toCategoryDTOS(topCategories);
+    }
+
+
+    @Transactional
+    public void setProductTop(Long categoryId, Boolean isTop) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(()->new ResourceNotFoundException("Category is not found"));
+        category.setIsTop(isTop);
+        categoryRepository.save(category);
+    }
+
+    public void setCategoryPublish(Long categoryId, Boolean publish) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(()->new ResourceNotFoundException("Category is not found"));
+        category.setPublish(publish);
+        categoryRepository.save(category);
     }
 }
