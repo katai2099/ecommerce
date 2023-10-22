@@ -5,7 +5,6 @@ import com.web.ecommerce.dto.product.*;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.model.ProductAttributeRequest;
 import com.web.ecommerce.model.product.Category;
-import com.web.ecommerce.model.product.Size;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
 import com.web.ecommerce.specification.ProductFilter;
@@ -52,32 +51,43 @@ public class ProductController {
 
     @PutMapping(value = "/category/{categoryId}/top-category")
     public ResponseEntity<String> setTopCategory(@PathVariable Long categoryId,
-                                                     @RequestBody ProductAttributeRequest.CategoryIsTopRequest request) {
+                                                 @RequestBody ProductAttributeRequest.CategoryIsTopRequest request) {
         productService.setProductTop(categoryId, request.getIsTop());
         return ResponseEntity.ok("Category successfully updated");
     }
 
     @PutMapping(value = "/category/{categoryId}/publish")
     public ResponseEntity<String> setCategoryPublish(@PathVariable Long categoryId,
-                                                    @RequestBody ProductAttributeRequest.ProductPublishRequest request) {
+                                                     @RequestBody ProductAttributeRequest.ProductPublishRequest request) {
         productService.setCategoryPublish(categoryId, request.getPublish());
         return ResponseEntity.ok("Category successfully updated");
     }
 
-    @GetMapping("/category/")
+    @GetMapping("/category")
     public ResponseEntity<List<CategoryDTO>> getCategories() {
         return ResponseEntity.ok(productService.getCategories());
     }
 
-    @PostMapping("/size/")
-    public ResponseEntity<String> addNewSize(@RequestBody Size size) {
-        productService.addNewSize(size);
-        return new ResponseEntity<>("Size created", HttpStatus.CREATED);
+    @PostMapping("/size")
+    public ResponseEntity<SizeDTO> addNewSize(@RequestBody SizeDTO size) {
+        SizeDTO sizeDTO = productService.addNewSize(size);
+        return ResponseEntity.ok(sizeDTO);
     }
 
-    @GetMapping("/size/")
-    public ResponseEntity<List<Size>> getSizes() {
-        return new ResponseEntity<>(productService.getSizes(), HttpStatus.OK);
+    @PutMapping("/size/{sizeId}")
+    public ResponseEntity<SizeDTO> updateSize(@PathVariable Long sizeId,
+                                             @RequestBody SizeDTO size) {
+        if (!sizeId.equals(size.getId())) {
+            throw new InvalidContentException("Id mismatch");
+        }
+        SizeDTO sizeDTO = productService.updateSize(size);
+        return ResponseEntity.ok(sizeDTO);
+    }
+
+    @GetMapping("/size")
+    public ResponseEntity<List<SizeDTO>> getSizes() {
+        List<SizeDTO> sizeDTOS = productService.getSizes();
+        return ResponseEntity.ok(sizeDTOS);
     }
 
     @GetMapping("/search")
@@ -130,12 +140,6 @@ public class ProductController {
                                                     @RequestBody ProductAttributeRequest.ProductPublishRequest request) {
         productService.setProductPublish(productId, request.getPublish());
         return ResponseEntity.ok("Product successfully updated");
-    }
-
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long productId) {
-        productService.deleteProduct(productId);
-        return new ResponseEntity<>("Product with ID " + productId + " removed", HttpStatus.OK);
     }
 
     @GetMapping("/{productId}/reviews")
