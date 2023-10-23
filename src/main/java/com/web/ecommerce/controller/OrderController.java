@@ -3,12 +3,15 @@ package com.web.ecommerce.controller;
 import com.web.ecommerce.dto.PaginationResponse;
 import com.web.ecommerce.dto.order.OrderDTO;
 import com.web.ecommerce.dto.order.OrderDetailDTO;
+import com.web.ecommerce.model.OrderAnalytic;
+import com.web.ecommerce.model.SaleAnalytic;
 import com.web.ecommerce.service.OrderService;
 import com.web.ecommerce.specification.order.OrderFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -41,6 +44,21 @@ public class OrderController {
                                                     @RequestParam String status) {
         String newStatus = orderService.updateOrderStatus(orderId,status);
         return ResponseEntity.ok("Order status update to " + newStatus + " completed");
+    }
+
+    @GetMapping("/recent-order")
+    public ResponseEntity<List<OrderDetailDTO>> getRecentOrders() {
+        return ResponseEntity.ok(orderService.getRecentOrders());
+    }
+
+    @GetMapping("/order-analytic")
+    public ResponseEntity<OrderAnalytic> getOrderAnalytic() {
+        return ResponseEntity.ok(orderService.getOrderAnalytic());
+    }
+
+    @GetMapping("/sales-analytic")
+    public ResponseEntity<SaleAnalytic> getSalesAnalytic() {
+        return ResponseEntity.ok(orderService.getSalesAnalytic());
     }
 
 
