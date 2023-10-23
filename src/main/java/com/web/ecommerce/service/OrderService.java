@@ -7,6 +7,7 @@ import com.web.ecommerce.enumeration.OrderStatusEnum;
 import com.web.ecommerce.exception.InvalidContentException;
 import com.web.ecommerce.exception.ResourceNotFoundException;
 import com.web.ecommerce.model.order.Order;
+import com.web.ecommerce.model.order.OrderHistory;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.repository.OrderRepository;
 import com.web.ecommerce.repository.OrderStatusRepository;
@@ -21,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,16 +76,20 @@ public class OrderService {
     }
 
     @Transactional
-    public String updateOrderStatus(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public String updateOrderStatus(UUID orderId,String status){
+        Order order = orderRepository.findByOrderUuid(orderId)
                 .orElseThrow(() -> new InvalidContentException("Order with " + orderId + " does not exist"));
-        OrderStatus orderStatus = order.getOrderStatus();
-        OrderStatusEnum nextOrderStatusEnum = OrderStatusEnum.getNextOrderStatus(OrderStatusEnum.valueOf(orderStatus.getName()));
-        OrderStatus nextOrderStatus = orderStatusRepository.findByName(nextOrderStatusEnum.toString())
+        String replacedStatus = status.toUpperCase().replaceAll("\\s","_");
+        OrderStatusEnum statusEnum = OrderStatusEnum.valueOf(replacedStatus);
+        OrderStatus nextOrderStatus = orderStatusRepository.findByName(statusEnum.toString())
                 .orElseThrow(() -> new InvalidContentException("Status does not exist"));
         order.setOrderStatus(nextOrderStatus);
+        OrderHistory orderHistory = new OrderHistory();
+        orderHistory.setStatus(nextOrderStatus);
+        orderHistory.setActionTime(LocalDateTime.now());
+        order.addOrderHistory(orderHistory);
         orderRepository.save(order);
-        return nextOrderStatusEnum.toString();
+        return statusEnum.toString();
     }
 
 }

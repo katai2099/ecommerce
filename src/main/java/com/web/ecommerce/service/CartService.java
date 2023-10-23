@@ -11,6 +11,7 @@ import com.web.ecommerce.model.PlaceOrderRequest;
 import com.web.ecommerce.model.StockCountCheckResponse;
 import com.web.ecommerce.model.order.Order;
 import com.web.ecommerce.model.order.OrderDetail;
+import com.web.ecommerce.model.order.OrderHistory;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.model.product.Cart;
 import com.web.ecommerce.model.product.CartItem;
@@ -31,7 +32,6 @@ import static com.web.ecommerce.util.Util.getUserIdFromSecurityContext;
 public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    private final CartItemService cartItemService;
     private final ProductSizeRepository productSizeRepository;
     private final UserRepository userRepository;
     private final OrderStatusRepository orderStatusRepository;
@@ -43,13 +43,14 @@ public class CartService {
     @Autowired
     public CartService(CartRepository cartRepository,
                        CartItemRepository cartItemRepository,
-                       CartItemService cartItemService, ProductSizeRepository productSizeRepository,
+                       ProductSizeRepository productSizeRepository,
                        UserRepository userRepository,
                        OrderStatusRepository orderStatusRepository,
-                       OrderRepository orderRepository, AddressRepository addressRepository, StripeService stripeService) {
+                       OrderRepository orderRepository,
+                       AddressRepository addressRepository,
+                       StripeService stripeService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
-        this.cartItemService = cartItemService;
         this.productSizeRepository = productSizeRepository;
         this.userRepository = userRepository;
         this.orderStatusRepository = orderStatusRepository;
@@ -61,9 +62,9 @@ public class CartService {
     public List<CartItemDTO> getCartItems(String deviceId) {
         Long userId = getUserIdFromSecurityContext();
         Optional<Cart> dbCart;
-        if(userId!=-1){
+        if (userId != -1) {
             dbCart = cartRepository.findCartByUserId(userId);
-        }else{
+        } else {
             dbCart = cartRepository.findCartByDeviceId(deviceId);
         }
         if (dbCart.isEmpty()) {
@@ -75,7 +76,7 @@ public class CartService {
     }
 
     @Transactional
-    public Long addToCart(NewCartDTO newCartItem,String deviceId) {
+    public Long addToCart(NewCartDTO newCartItem, String deviceId) {
         Long userId = getUserIdFromSecurityContext();
         ProductSize productSize = productSizeRepository.
                 findProductSizeByProductIdAndSizeName(newCartItem.getProductId(), newCartItem.getSize())
@@ -84,7 +85,7 @@ public class CartService {
             throw new InvalidContentException("Product out of stock");
         }
         Cart currentCart;
-        if(userId!=-1){
+        if (userId != -1) {
             currentCart = cartRepository.findCartByUserId(userId)
                     .orElseGet(() -> {
                         Cart newCart = new Cart();
@@ -93,9 +94,9 @@ public class CartService {
                         newCart.setUser(user);
                         return cartRepository.save(newCart);
                     });
-        }else{
+        } else {
             currentCart = cartRepository.findCartByDeviceId(deviceId)
-                    .orElseGet(()->{
+                    .orElseGet(() -> {
                         Cart newCart = new Cart();
                         newCart.setDeviceId(deviceId);
                         return cartRepository.save(newCart);
@@ -147,9 +148,9 @@ public class CartService {
         }
     }
 
-    public List<StockCountCheckResponse> performStockCountCheck(){
+    public List<StockCountCheckResponse> performStockCountCheck() {
         Long userId = getUserIdFromSecurityContext();
-        Cart cart = cartRepository.findCartByUserId(userId).orElseThrow(()->new InvalidContentException("Cart is empty"));
+        Cart cart = cartRepository.findCartByUserId(userId).orElseThrow(() -> new InvalidContentException("Cart is empty"));
         List<StockCountCheckResponse> responseList = new ArrayList<>();
         Set<CartItem> cartItems = cart.getCartItems();
         for (CartItem item : cartItems) {
@@ -242,16 +243,21 @@ public class CartService {
             item.getProductSize().setStockCount(productStockCount - quantity);
             order.addOrderDetail(orderDetail);
         }
+        LocalDateTime currentTime = LocalDateTime.now();
         order.setDeliveryAddress(dbDeliveryAddress);
         order.setBillingAddress(isAddressTheSame(deliveryAddress, billingAddress) ? dbDeliveryAddress : dbBillingAddress);
         order.setStripePaymentIntentId(request.getStripePaymentIntentId());
-        order.setOrderDate(LocalDateTime.now());
+        order.setOrderDate(currentTime);
         order.setTotalPrice(total);
         order.setUser(user);
         OrderStatus orderStatus = orderStatusRepository.findByName(OrderStatusEnum.ORDER_PLACED.toString())
                 .orElseThrow(() -> new RuntimeException("Internal Server Error"));
         orderStatus.addOrder(order);
         order.setOrderStatus(orderStatus);
+        OrderHistory orderHistory = new OrderHistory();
+        orderHistory.setStatus(orderStatus);
+        orderHistory.setActionTime(currentTime);
+        order.addOrderHistory(orderHistory);
         user.addOrder(order);
         Order savedOrder = orderRepository.save(order);
         cartRepository.delete(user.getCart());
@@ -286,17 +292,17 @@ public class CartService {
         return true;
     }
 
-    public void mergeCart(Long userId,String deviceId) {
+    public void mergeCart(Long userId, String deviceId) {
         Optional<Cart> optionalCart = cartRepository.findCartByDeviceId(deviceId);
-        if(optionalCart.isEmpty()){
+        if (optionalCart.isEmpty()) {
             return;
         }
         Cart deviceCart = optionalCart.get();
-        if(deviceCart.getCartItems().isEmpty()){
+        if (deviceCart.getCartItems().isEmpty()) {
             return;
         }
         Cart userCart = cartRepository.findCartByUserId(userId)
-                .orElseGet(()->{
+                .orElseGet(() -> {
                     Cart newCart = new Cart();
                     User user = new User();
                     user.setId(userId);

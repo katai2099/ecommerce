@@ -16,7 +16,6 @@ import java.util.UUID;
 @Table(name = "orders")
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
@@ -50,8 +49,16 @@ public class Order {
     @ToString.Exclude
     List<OrderDetail> orderDetails = new ArrayList<>();
 
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "order-history")
+    List<OrderHistory> orderHistories = new ArrayList<>();
+
     public void addOrderDetail(OrderDetail orderDetail){
         this.orderDetails.add(orderDetail);
+    }
+    public void addOrderHistory(OrderHistory orderHistory){
+        orderHistory.setOrder(this);
+        this.orderHistories.add(orderHistory);
     }
 
 }

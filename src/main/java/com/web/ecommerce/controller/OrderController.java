@@ -37,8 +37,9 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}")
-    public ResponseEntity<String> updateOrderStatus(@PathVariable Long orderId) {
-        String newStatus = orderService.updateOrderStatus(orderId);
+    public ResponseEntity<String> updateOrderStatus(@PathVariable UUID orderId,
+                                                    @RequestParam String status) {
+        String newStatus = orderService.updateOrderStatus(orderId,status);
         return ResponseEntity.ok("Order status update to " + newStatus + " completed");
     }
 

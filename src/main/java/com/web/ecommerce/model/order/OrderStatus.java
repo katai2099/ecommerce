@@ -23,6 +23,9 @@ public class OrderStatus {
     @OneToMany(mappedBy = "orderStatus")
     private List<Order> orders=new ArrayList<>();
 
+    @OneToMany(mappedBy = "status")
+    private List<OrderHistory> orderHistories=new ArrayList<>();
+
     public void addOrder(Order order){
         this.orders.add(order);
     }

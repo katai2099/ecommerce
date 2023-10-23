@@ -12,11 +12,13 @@ import java.util.stream.Collectors;
 public class OrderDetailDTO {
     private OrderDTO order;
     private UserOrderDetailDTO user;
+    private List<OrderHistoryDTO> orderHistories;
 
     public static OrderDetailDTO toOrderDetailDTO(Order order) {
         OrderDetailDTO dto = new OrderDetailDTO();
         dto.setOrder(OrderDTO.toOrderDTO(order));
         dto.setUser(UserOrderDetailDTO.toUserOrderDetailDTO(order.getUser()));
+        dto.setOrderHistories(OrderHistoryDTO.toOrderHistoryDTOS(order.getOrderHistories()));
         return dto;
     }
 
