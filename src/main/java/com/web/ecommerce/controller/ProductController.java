@@ -7,7 +7,7 @@ import com.web.ecommerce.model.ProductAttributeRequest;
 import com.web.ecommerce.model.product.Category;
 import com.web.ecommerce.service.ProductService;
 import com.web.ecommerce.service.ReviewService;
-import com.web.ecommerce.specification.ProductFilter;
+import com.web.ecommerce.specification.product.ProductFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -89,15 +89,6 @@ public class ProductController {
         List<SizeDTO> sizeDTOS = productService.getSizes();
         return ResponseEntity.ok(sizeDTOS);
     }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String gender,
-                                                           @RequestParam String searchTerm,
-                                                           @RequestParam int page) {
-        List<ProductDTO> products = productService.searchProducts(gender.toUpperCase(), page, searchTerm);
-        return ResponseEntity.ok(products);
-    }
-
 
     @GetMapping()
     public ResponseEntity<PaginationResponse<ProductDTO>> getProducts(@ModelAttribute ProductFilter filter) {

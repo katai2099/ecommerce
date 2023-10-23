@@ -1,8 +1,9 @@
-package com.web.ecommerce.specification;
+package com.web.ecommerce.specification.product;
 
 import com.web.ecommerce.enumeration.Gender;
 import com.web.ecommerce.enumeration.SearchOperation;
 import com.web.ecommerce.model.product.Product;
+import com.web.ecommerce.specification.SearchCriteria;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;

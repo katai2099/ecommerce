@@ -1,7 +1,8 @@
-package com.web.ecommerce.specification;
+package com.web.ecommerce.specification.product;
 
 import com.web.ecommerce.enumeration.SearchOperation;
 import com.web.ecommerce.model.product.Product;
+import com.web.ecommerce.specification.SearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

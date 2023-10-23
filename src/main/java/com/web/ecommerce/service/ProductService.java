@@ -12,8 +12,8 @@ import com.web.ecommerce.model.product.*;
 import com.web.ecommerce.repository.CategoryRepository;
 import com.web.ecommerce.repository.ProductRepository;
 import com.web.ecommerce.repository.SizeRepository;
-import com.web.ecommerce.specification.ProductFilter;
-import com.web.ecommerce.specification.ProductSpecificationBuilder;
+import com.web.ecommerce.specification.product.ProductFilter;
+import com.web.ecommerce.specification.product.ProductSpecificationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -74,19 +74,19 @@ public class ProductService {
             switch (sort) {
                 case HIGHEST_PRICE -> {
                     filter.setStock(DEFAULT);
-                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").descending());
+                    return PageRequest.of(filter.getPage() - 1, filter.getItemperpage(), Sort.by("price").descending());
                 }
                 case LOWEST_PRICE -> {
                     filter.setStock(DEFAULT);
-                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("price").ascending());
+                    return PageRequest.of(filter.getPage() - 1, filter.getItemperpage(), Sort.by("price").ascending());
                 }
                 case NEWEST -> {
                     filter.setStock(DEFAULT);
-                    return PageRequest.of(filter.getPage() - 1, 20, Sort.by("createdAt").descending());
+                    return PageRequest.of(filter.getPage() - 1, filter.getItemperpage(), Sort.by("createdAt").descending());
                 }
                 case DEFAULT -> {
                     filter.setStock(DEFAULT);
-                    return PageRequest.of(filter.getPage() - 1, 20);
+                    return PageRequest.of(filter.getPage() - 1, filter.getItemperpage());
                 }
             }
         }
@@ -97,14 +97,6 @@ public class ProductService {
         Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         return ProductDTO.toProductDTO(product);
     }
-
-
-    public List<ProductDTO> searchProducts(String gender, int page, String searchTerm) {
-        Pageable pageable = PageRequest.of(page - 1, 20);
-        List<Product> products = productRepository.findAllByNameContainingIgnoreCaseAndGender(searchTerm, Gender.valueOf(gender), pageable);
-        return ProductDTO.toProductDTOs(products);
-    }
-
 
     @Transactional
     public ProductDTO addNewProduct(CreateProductRequest createProductRequest, List<MultipartFile> files) {

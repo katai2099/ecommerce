@@ -10,11 +10,14 @@ import com.web.ecommerce.model.order.Order;
 import com.web.ecommerce.model.order.OrderStatus;
 import com.web.ecommerce.repository.OrderRepository;
 import com.web.ecommerce.repository.OrderStatusRepository;
+import com.web.ecommerce.specification.order.OrderFilter;
+import com.web.ecommerce.specification.order.OrderSpecificationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,24 +38,26 @@ public class OrderService {
         this.orderStatusRepository = orderStatusRepository;
     }
 
-    @Transactional
-    public PaginationResponse<OrderDTO> getOrders(int page) {
-        Pageable pageable = PageRequest.of(page - 1, 20, Sort.by("orderDate").descending());
-        Page<Order> orderLists = orderRepository.findAll(pageable);
-        List<OrderDTO> orders = OrderDTO.toOrderDTOS(orderLists.stream().toList());
-        return PaginationResponse.<OrderDTO>builder()
-                .currentPage(page)
+    public PaginationResponse<OrderDetailDTO> getOrders(OrderFilter filter) {
+        Pageable pageable = PageRequest.of(filter.getPage() - 1, filter.getItemperpage(), Sort.by("orderDate").descending());
+        OrderSpecificationBuilder builder = new OrderSpecificationBuilder();
+        builder.withFilter(filter);
+        Specification<Order> spec = builder.build();
+        Page<Order> orderLists = orderRepository.findAll(spec, pageable);
+        List<OrderDetailDTO> orders = OrderDetailDTO.toOrderDetailDTOs(orderLists.stream().toList());
+        return PaginationResponse.<OrderDetailDTO>builder()
+                .currentPage(filter.getPage())
                 .totalPage(orderLists.getTotalPages())
                 .totalItem(orderLists.getNumberOfElements())
                 .data(orders)
                 .build();
     }
 
-    public PaginationResponse<OrderDTO> getUserOrders(int page){
+    public PaginationResponse<OrderDTO> getUserOrders(int page) {
         Long userId = getUserIdFromSecurityContext();
         Pageable pageable = PageRequest.of(page - 1, 20, Sort.by("orderDate").descending());
 
-        Page<Order> orderPage = orderRepository.findAllByUserId(userId,pageable);
+        Page<Order> orderPage = orderRepository.findAllByUserId(userId, pageable);
         PaginationResponse<OrderDTO> orderDTOPaginationResponse = PaginationResponse.<OrderDTO>builder()
                 .currentPage(page)
                 .totalPage(orderPage.getTotalPages())
@@ -62,7 +67,6 @@ public class OrderService {
         return orderDTOPaginationResponse;
     }
 
-    @Transactional
     public OrderDetailDTO getOrder(UUID orderId) {
         Order order = orderRepository.findByOrderUuid(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order with Id " + orderId + " not found"));

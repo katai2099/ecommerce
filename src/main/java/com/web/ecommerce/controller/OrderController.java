@@ -4,6 +4,7 @@ import com.web.ecommerce.dto.PaginationResponse;
 import com.web.ecommerce.dto.order.OrderDTO;
 import com.web.ecommerce.dto.order.OrderDetailDTO;
 import com.web.ecommerce.service.OrderService;
+import com.web.ecommerce.specification.order.OrderFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +22,8 @@ public class OrderController {
     }
 
     @GetMapping()
-    public ResponseEntity<PaginationResponse<OrderDTO>> getOrders(@RequestParam(required = false, defaultValue = "1") int page,
-                                                                  @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(orderService.getOrders(page));
+    public ResponseEntity<PaginationResponse<OrderDetailDTO>> getOrders(@ModelAttribute OrderFilter filter) {
+        return ResponseEntity.ok(orderService.getOrders(filter));
     }
 
     @GetMapping("/user/")
