@@ -90,7 +90,7 @@ public class ProductService {
                 }
             }
         }
-        return PageRequest.of(filter.getPage() - 1, 20);
+        return PageRequest.of(filter.getPage() - 1, filter.getItemperpage());
     }
 
     public ProductDTO getProduct(Long id) {
