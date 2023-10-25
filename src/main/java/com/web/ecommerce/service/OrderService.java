@@ -126,7 +126,7 @@ public class OrderService {
     }
 
     private String getOldestOrderDate() {
-        return orderRepository.getOldestOrderDate().toString();
+        return orderRepository.getOldestOrderDate().orElse(LocalDateTime.now()).toString();
     }
 
     private Long getTotalSales() {
@@ -134,11 +134,17 @@ public class OrderService {
     }
 
     private Long getTodayOrders() {
-        return orderRepository.getTodayOrders();
+        LocalDateTime currentTimestamp = LocalDateTime.now();
+        LocalDateTime startOfDay = currentTimestamp.withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = currentTimestamp.withHour(23).withMinute(59).withSecond(59);
+        return orderRepository.getTodayOrders(startOfDay,endOfDay);
     }
 
     private Long getTodaySales() {
-        return orderRepository.getTodaySales().orElse(0L);
+        LocalDateTime currentTimestamp = LocalDateTime.now();
+        LocalDateTime startOfDay = currentTimestamp.withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = currentTimestamp.withHour(23).withMinute(59).withSecond(59);
+        return orderRepository.getTodaySales(startOfDay,endOfDay).orElse(0L);
     }
 
     private List<WeeklySaleData> getLastSevenDaysSales(){

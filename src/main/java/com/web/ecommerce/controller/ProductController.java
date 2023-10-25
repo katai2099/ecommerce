@@ -52,7 +52,7 @@ public class ProductController {
     @PutMapping(value = "/category/{categoryId}/top-category")
     public ResponseEntity<String> setTopCategory(@PathVariable Long categoryId,
                                                  @RequestBody ProductAttributeRequest.CategoryIsTopRequest request) {
-        productService.setProductTop(categoryId, request.getIsTop());
+        productService.setCategoryTop(categoryId, request.getIsTop());
         return ResponseEntity.ok("Category successfully updated");
     }
 

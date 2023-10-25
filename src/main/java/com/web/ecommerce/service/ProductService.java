@@ -279,6 +279,10 @@ public class ProductService {
     public void setProductFeatured(Long id, Boolean featured) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        Long featuredProductCount = productRepository.countAllByIsFeaturedIsTrue();
+        if(featuredProductCount >= 20){
+            throw new InvalidContentException("You can only set 20 products as featured");
+        }
         product.setFeatured(featured);
         productRepository.save(product);
     }
@@ -326,20 +330,24 @@ public class ProductService {
     }
 
     public List<ProductDTO> getFeaturedProducts() {
-        List<Product> featuredProducts = productRepository.findAllByIsFeaturedIsTrue();
+        List<Product> featuredProducts = productRepository.findAllByIsFeaturedIsTrueAndPublishIsTrue();
         return ProductDTO.toProductDTOs(featuredProducts);
     }
 
     public List<CategoryDTO> getTopCategories() {
-        List<Category> topCategories = categoryRepository.findAllByIsTopIsTrue();
+        List<Category> topCategories = categoryRepository.findAllByIsTopIsTrueAndPublishIsTrue();
         return CategoryDTO.toCategoryDTOS(topCategories);
     }
 
 
     @Transactional
-    public void setProductTop(Long categoryId, Boolean isTop) {
+    public void setCategoryTop(Long categoryId, Boolean isTop) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category is not found"));
+        Long topCategoryCount = categoryRepository.countAllByIsTopIsTrue();
+        if(topCategoryCount >= 12){
+            throw new InvalidContentException("You can only set 12 categories as top category");
+        }
         category.setIsTop(isTop);
         categoryRepository.save(category);
     }

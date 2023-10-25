@@ -27,14 +27,14 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
     @Query("select sum(o.TotalPrice) from Order o")
     Optional<Long> getTotalSales();
 
-    @Query("select count(o) from Order o where o.orderDate = current_date")
-    Long getTodayOrders();
+    @Query("select count(o) from Order o where o.orderDate between ?1 and ?2")
+    Long getTodayOrders(LocalDateTime startOfDay, LocalDateTime endOfDay);
 
-    @Query("select sum(o.TotalPrice) from Order o where o.orderDate = current_date")
-    Optional<Long> getTodaySales();
+    @Query("select sum(o.TotalPrice) from Order o where o.orderDate between ?1 and ?2")
+    Optional<Long> getTodaySales(LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     @Query("select o.orderDate from Order o order by o.orderDate asc limit 1")
-    LocalDateTime getOldestOrderDate();
+    Optional<LocalDateTime> getOldestOrderDate();
 
     @Query("select new com.web.ecommerce.model.MonthlySaleData(sum(o.TotalPrice), month(o.orderDate) ,year(o.orderDate)) from Order o where o.orderDate between ?1 and current date group by month (o.orderDate),year (o.orderDate)")
     List<MonthlySaleData> getLastTwelveMonthSales(LocalDateTime lastTwelveMonth);

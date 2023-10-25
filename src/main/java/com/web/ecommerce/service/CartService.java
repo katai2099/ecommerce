@@ -216,6 +216,7 @@ public class CartService {
         Address dbDeliveryAddress = addressRepository.findById(deliveryAddress.getId())
                 .orElseGet(() -> {
                     deliveryAddress.setUser(user);
+                    deliveryAddress.setActive(true);
                     return addressRepository.save(deliveryAddress);
                 });
 
