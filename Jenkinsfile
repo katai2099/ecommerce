@@ -6,11 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout'){
-            steps{
-                checkout changelog: false, scm: scmGit(branches: [[name: '*/${env.BRANCH_NAME}']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/katai2099/ecommerce']])
-            }
-        }
         stage('Build') {
             steps {
                 sh "mvn -DskipTests clean install"
