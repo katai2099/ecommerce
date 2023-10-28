@@ -1,9 +1,6 @@
 #!/bin/sh
 ssh -i "$EC2keyfile" -o StrictHostKeyChecking=no $EC2_USER@16.170.227.116 <<EOF
 echo "Deploying to EC2 instance"
-cat $HOME/.aws/credentials
-echo $MAIL_SERVER_USER
-echo $RDS_USER
 set -euo pipefail
 docker rmi -f katai2099/ecommerce-backend || true
 docker rm -f ecommerce-backend || true
