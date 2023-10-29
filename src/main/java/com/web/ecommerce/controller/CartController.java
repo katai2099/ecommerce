@@ -29,48 +29,48 @@ public class CartController {
 
     @PostMapping("/add-to-cart")
     public ResponseEntity<Long> addToCart(@RequestBody NewCartDTO cartItem,
-                                          @CookieValue(value = "deviceId") String deviceId){
-        Long cartItemId = cartService.addToCart(cartItem,deviceId);
+                                          @RequestParam String deviceId) {
+        Long cartItemId = cartService.addToCart(cartItem, deviceId);
         return new ResponseEntity<>(cartItemId, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<String> updateCart(@RequestBody UpdateCartDTO cartItem,
-                                             @PathVariable Long id){
-        if(!Objects.equals(cartItem.getCartItemId(), id)){
+                                             @PathVariable Long id) {
+        if (!Objects.equals(cartItem.getCartItemId(), id)) {
             throw new InvalidContentException("Cart ID mismatch");
         }
         cartService.updateCart(cartItem);
-        return new ResponseEntity<>("Successfully updated",HttpStatus.OK);
+        return new ResponseEntity<>("Successfully updated", HttpStatus.OK);
     }
 
     @GetMapping()
-    public ResponseEntity<List<CartItemDTO>> getCartItems(@CookieValue(value = "deviceId") String deviceId){
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestParam String deviceId) {
         List<CartItemDTO> items = cartService.getCartItems(deviceId);
-        return new ResponseEntity<>(items,HttpStatus.OK);
+        return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
     @PostMapping("/stock-check")
-    public ResponseEntity<List<StockCountCheckResponse>> performStockCheck(){
+    public ResponseEntity<List<StockCountCheckResponse>> performStockCheck() {
         List<StockCountCheckResponse> response = cartService.performStockCountCheck();
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<CheckoutResponse>createPaymentIntent(){
+    public ResponseEntity<CheckoutResponse> createPaymentIntent() {
         CheckoutResponse response = cartService.checkout();
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/confirm-intent")
-    public ResponseEntity<NextActionResponse> confirmPayment(@RequestBody ConfirmPaymentRequest request){
+    public ResponseEntity<NextActionResponse> confirmPayment(@RequestBody ConfirmPaymentRequest request) {
         NextActionResponse response = stripeService.confirmPayment(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/place-order")
-    public ResponseEntity<String> placeOrder(@RequestBody PlaceOrderRequest request){
-        String orderId =  cartService.placeOrder(request);
+    public ResponseEntity<String> placeOrder(@RequestBody PlaceOrderRequest request) {
+        String orderId = cartService.placeOrder(request);
         return ResponseEntity.ok(orderId);
     }
 

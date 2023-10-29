@@ -48,7 +48,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO register(SignUpRequest signUpRequest, String deviceId) {
+    public UserDTO register(SignUpData signUpRequest, String deviceId) {
         byte[] decodedPasswordBytes = Base64.getDecoder().decode(signUpRequest.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
         Optional<User> dbUser = userRepository.findByEmail(signUpRequest.getEmail());
@@ -76,10 +76,10 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO login(SignInRequest signInRequest, String deviceId) {
-        byte[] decodedEmailBytes = Base64.getDecoder().decode(signInRequest.getEmail());
+    public UserDTO login(SignInData signInData, String deviceId) {
+        byte[] decodedEmailBytes = Base64.getDecoder().decode(signInData.getEmail());
         String decodedEmail = new String(decodedEmailBytes);
-        byte[] decodedPasswordBytes = Base64.getDecoder().decode(signInRequest.getPassword());
+        byte[] decodedPasswordBytes = Base64.getDecoder().decode(signInData.getPassword());
         String decodedPassword = new String(decodedPasswordBytes);
         User user = userRepository.findByEmail(decodedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials."));
