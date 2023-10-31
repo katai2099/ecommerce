@@ -78,7 +78,7 @@ public class SecurityConfiguration {
                 "http://127.0.0.1:3000",
                 "http://89.134.215.228:3000",
                 "https://ecommerce-frontend-henna-three.vercel.app"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
+        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type","Cookie"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
