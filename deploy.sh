@@ -1,5 +1,5 @@
 #!/bin/sh
-ssh -i "$EC2keyfile" -o StrictHostKeyChecking=no $EC2_USER@16.170.227.116 <<EOF
+ssh -i "$EC2keyfile" -o StrictHostKeyChecking=no $EC2_USER@13.53.222.136 <<EOF
 echo "Deploying to EC2 instance"
 set -euo pipefail
 docker rmi -f katai2099/ecommerce-backend || true
