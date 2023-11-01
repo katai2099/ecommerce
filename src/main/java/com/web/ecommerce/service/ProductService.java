@@ -102,6 +102,12 @@ public class ProductService {
     public ProductDTO addNewProduct(CreateProductRequest createProductRequest, List<MultipartFile> files) {
         Category category = categoryRepository.findById(createProductRequest.getCategory().getId())
                 .orElseThrow(() -> new InvalidContentException("The provided category does not exist. Please provide a valid category."));
+        if (createProductRequest.getFeatured()) {
+            Long featuredProductCount = productRepository.countAllByIsFeaturedIsTrue();
+            if (featuredProductCount >= 20) {
+                throw new InvalidContentException("You can only set 20 products as featured");
+            }
+        }
         Product newProduct = Product.builder()
                 .name(createProductRequest.getName())
                 .description(createProductRequest.getDescription())
@@ -212,7 +218,12 @@ public class ProductService {
     public ProductDTO updateProduct(CreateProductRequest productRequest, List<MultipartFile> files) {
         Product product = productRepository.findById(productRequest.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + productRequest.getId() + " does not exist"));
-
+        if (productRequest.getFeatured()) {
+            Long featuredProductCount = productRepository.countAllByIsFeaturedIsTrue();
+            if (featuredProductCount >= 20) {
+                throw new InvalidContentException("You can only set 20 products as featured");
+            }
+        }
         if (productRequest.getName() != null && !productRequest.getName().isEmpty()) {
             product.setName(productRequest.getName());
         }
@@ -280,7 +291,7 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         Long featuredProductCount = productRepository.countAllByIsFeaturedIsTrue();
-        if(featuredProductCount >= 20){
+        if (featuredProductCount >= 20) {
             throw new InvalidContentException("You can only set 20 products as featured");
         }
         product.setFeatured(featured);
@@ -297,6 +308,12 @@ public class ProductService {
 
     @Transactional
     public CategoryDTO addNewCategory(Category categoryData, List<MultipartFile> files) {
+        if (categoryData.getIsTop()) {
+            Long topCategoryCount = categoryRepository.countAllByIsTopIsTrue();
+            if (topCategoryCount >= 12) {
+                throw new InvalidContentException("You only can have 12 top categories");
+            }
+        }
         Category category = new Category();
         category.setName(categoryData.getName());
         category.setIsTop(categoryData.getIsTop());
@@ -310,7 +327,7 @@ public class ProductService {
 
     @Transactional
     public List<CategoryDTO> getCategories(Boolean admin) {
-        if(admin!=null){
+        if (admin != null) {
             List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
             return CategoryDTO.toCategoryDTOS(categories);
         }
@@ -329,7 +346,7 @@ public class ProductService {
     }
 
     public List<SizeDTO> getSizes(Boolean admin) {
-        if(admin!=null){
+        if (admin != null) {
             List<Size> sizes = sizeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
             return SizeDTO.toSizeDTOS(sizes);
         }
@@ -353,7 +370,7 @@ public class ProductService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category is not found"));
         Long topCategoryCount = categoryRepository.countAllByIsTopIsTrue();
-        if(topCategoryCount >= 12){
+        if (topCategoryCount >= 12) {
             throw new InvalidContentException("You can only set 12 categories as top category");
         }
         category.setIsTop(isTop);
