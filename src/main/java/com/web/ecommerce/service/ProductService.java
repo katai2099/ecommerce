@@ -309,8 +309,12 @@ public class ProductService {
     }
 
     @Transactional
-    public List<CategoryDTO> getCategories() {
-        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<CategoryDTO> getCategories(Boolean admin) {
+        if(admin!=null){
+            List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+            return CategoryDTO.toCategoryDTOS(categories);
+        }
+        List<Category> categories = categoryRepository.findAllByPublishIsTrue(Sort.by(Sort.Direction.ASC, "id"));
         return CategoryDTO.toCategoryDTOS(categories);
     }
 
@@ -324,8 +328,12 @@ public class ProductService {
         return SizeDTO.toSizeDTO(savedSize);
     }
 
-    public List<SizeDTO> getSizes() {
-        List<Size> sizes = sizeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<SizeDTO> getSizes(Boolean admin) {
+        if(admin!=null){
+            List<Size> sizes = sizeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+            return SizeDTO.toSizeDTOS(sizes);
+        }
+        List<Size> sizes = sizeRepository.findAllByPublishIsTrue(Sort.by(Sort.Direction.ASC, "id"));
         return SizeDTO.toSizeDTOS(sizes);
     }
 

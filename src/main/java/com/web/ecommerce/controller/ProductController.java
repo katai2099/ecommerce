@@ -64,8 +64,8 @@ public class ProductController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<List<CategoryDTO>> getCategories() {
-        return ResponseEntity.ok(productService.getCategories());
+    public ResponseEntity<List<CategoryDTO>> getCategories(@RequestParam(required = false) Boolean admin) {
+        return ResponseEntity.ok(productService.getCategories(admin));
     }
 
     @PostMapping("/size")
@@ -76,7 +76,7 @@ public class ProductController {
 
     @PutMapping("/size/{sizeId}")
     public ResponseEntity<SizeDTO> updateSize(@PathVariable Long sizeId,
-                                             @RequestBody SizeDTO size) {
+                                              @RequestBody SizeDTO size) {
         if (!sizeId.equals(size.getId())) {
             throw new InvalidContentException("Id mismatch");
         }
@@ -85,8 +85,8 @@ public class ProductController {
     }
 
     @GetMapping("/size")
-    public ResponseEntity<List<SizeDTO>> getSizes() {
-        List<SizeDTO> sizeDTOS = productService.getSizes();
+    public ResponseEntity<List<SizeDTO>> getSizes(@RequestParam(required = false) Boolean admin) {
+        List<SizeDTO> sizeDTOS = productService.getSizes(admin);
         return ResponseEntity.ok(sizeDTOS);
     }
 
