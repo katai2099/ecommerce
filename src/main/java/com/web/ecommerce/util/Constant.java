@@ -15,4 +15,5 @@ public class Constant {
     public static final String NEWEST = "NEWEST";
     public static final String WEBSITE_URL = "https://ecommerce-frontend-henna-three.vercel.app";
     public static final int TOKEN_EXPIRATION_TIME = 30;
+    public static final String BAD_CREDENTIALS_RESPONSE_MESSAGE = "Bad credentials.";
 }
