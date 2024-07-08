@@ -7,7 +7,6 @@
     <br />
     Please refer to this <a href="https://github.com/katai2099/ecommerce-frontend"><strong>Link »</strong></a> to see the frontend repo
     <br />
-    <a href="https://ecommerce-frontend-henna-three.vercel.app">View Live Demo</a>
   </p>
 </div>
 
